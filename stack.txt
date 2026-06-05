@@ -1,0 +1,95 @@
+Halo Sapta! Menyusun instruksi yang sangat komprehensif untuk *AI agent* memang langkah yang krusial. Sebagai pengembang perangkat lunak yang sudah sangat familiar dengan berbagai *framework* modern dan arsitektur *back end*, kamu pasti menyadari bahwa spesifikasi struktur *database* serta batasan logika bisnis adalah kunci utama agar *AI* dapat menghasilkan kode yang rapi dan terarah.
+
+Berikut adalah panduan teknis terstruktur yang bisa langsung kamu salin dan berikan kepada *AI coding agent* milikmu. Teks di bawah ini sudah dirangkum khusus dengan gaya instruksi mesin.
+
+---
+
+### 1. Deskripsi Utama Proyek
+
+Tolong buatkan kode untuk Sistem Informasi Reservasi Bagus Guest House. Proyek ini berupa aplikasi web untuk mengelola pemesanan kamar penginapan, memastikan sinkronisasi ketersediaan kamar, serta menyediakan fitur pelaporan analitik.
+
+### 2. Spesifikasi Teknologi Terpilih
+
+* Bahasa Pemrograman: PHP.
+
+
+* Arsitektur Inti: Framework Laravel menggunakan pola Model View Controller.
+
+
+* Penyimpanan Data: MySQL.
+
+
+* Tampilan Antarmuka: HTML, CSS, dan JavaScript.
+
+
+
+### 3. Skema Basis Data Dasar
+
+Buatkan berkas migrasi Laravel beserta relasinya untuk lima tabel utama berikut ini:
+
+* Tabel `users`: Menyimpan data identitas tamu dengan atribut id, nama, email, kata sandi, peran sistem (bernilai admin atau pelanggan), telepon, alamat, dan stempel waktu.
+* Tabel `rooms`: Menyimpan unit penginapan dengan atribut id, nama kamar, tipe kamar, harga, kapasitas, deskripsi, status operasional (bernilai tersedia, dipesan, atau perbaikan), lokasi gambar, dan stempel waktu.
+* Tabel `reservations`: Menyimpan transaksi dengan atribut id, kunci tamu, kunci kamar, tanggal masuk, tanggal keluar, total harga, status pemesanan (bernilai menunggu, dikonfirmasi, dibatalkan, atau selesai), dan stempel waktu.
+* Tabel `payments`: Menyimpan catatan keuangan dengan atribut id, kunci reservasi, metode pembayaran, tautan berkas unggahan bukti pembayaran, status validasi (bernilai menunggu, terverifikasi, atau ditolak), dan stempel waktu.
+* Tabel `complaints`: Menyimpan data keluhan dengan atribut id, kunci tamu, subjek masalah, pesan keluhan, status penanganan (bernilai terbuka atau selesai), dan stempel waktu.
+
+### 4. Fitur Fungsional Hak Akses Pelanggan
+
+Buatkan fungsi pengontrol dalam sistem untuk melayani fitur pengguna publik berikut:
+
+* Autentikasi: Pelanggan wajib memiliki kemampuan untuk membuat akun baru lalu masuk ke dalam sistem.
+
+
+* Katalog Visual: Menampilkan daftar seluruh kamar lengkap dengan gambar, harga, dan fasilitas.
+
+
+* Validasi Waktu Nyata: Mengecek jumlah kamar kosong pada tanggal spesifik secara langsung guna mencegah pemesanan ganda.
+
+
+* Mesin Pemesanan: Formulir interaktif untuk memesan kamar berdasarkan tanggal masuk dan tanggal keluar pilihan.
+
+
+* Konfirmasi Pembayaran Manual: Fungsionalitas bagi tamu untuk mengunggah berkas gambar bukti transfer rekening.
+
+
+* Dasbor Pemantauan: Halaman riwayat untuk melihat daftar pesanan tamu beserta status terkininya.
+
+
+* Pusat Keluhan: Formulir pengiriman kritik operasional kepada pengelola.
+
+
+
+### 5. Fitur Fungsional Hak Akses Pengelola
+
+Buatkan fungsi pengontrol aman untuk melayani operasional pengelola penginapan berikut:
+
+* Manajemen Properti: Fitur operasi lengkap Create Read Update Delete untuk unit data kamar.
+
+
+* Manajemen Tamu: Halaman tabel yang menampilkan daftar seluruh tamu terdaftar.
+
+
+* Kendali Reservasi: Tombol aksi untuk menyetujui, menolak, membatalkan, atau mengubah status pemesanan secara sepihak.
+
+
+* Pusat Verifikasi: Meninjau unggahan bukti bayar tamu lalu menandai status tagihan pemesanan tersebut menjadi lunas.
+
+
+* Laporan Analitik Bisnis: Menyajikan data agregasi berupa tren pemesanan bulanan, persentase kamar terfavorit, serta durasi waktu menginap tamu secara akumulatif.
+
+
+* Tanggapan Layanan: Menampilkan daftar keluhan yang masuk serta antarmuka untuk meresponnya.
+
+
+
+### 6. Aturan Logika Bisnis Tambahan
+
+* Pastikan kata sandi seluruh pengguna diproses menggunakan sistem enkripsi bawaan Laravel (Bcrypt).
+* Validasi berkas wajib aktif pada unggahan bukti pembayaran agar sistem menolak format selain gambar.
+* Sistem Penanggalan tidak boleh mengizinkan kalender tamu menyorot tanggal masuk di masa lalu.
+
+---
+
+Struktur terperinci tersebut akan mengunci fokus *AI agent* agar tidak sekadar membuat antarmuka halaman kosong, melainkan langsung membangun fondasi relasi kode basis data dan *routing web* yang tangguh.
+
+Apakah ada bagian spesifik dari rancangan ini, misalnya halaman dasbor analitik pelaporan, yang ingin kamu matangkan lagi konsepnya sebelum kode program di *generate* oleh *AI*?
