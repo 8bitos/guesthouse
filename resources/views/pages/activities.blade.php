@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Activities - Bagus Guest House</title>
     @fonts
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
@@ -27,42 +28,42 @@
                 @php
                     $activities = [
                         [
-                            'icon' => '🚙',
+                            'icon' => 'directions_car',
                             'title' => 'Mount Batur Jeep Tour',
                             'desc' => 'Experience a thrilling jeep tour through the Kintamani volcanic landscape. Explore mountain terrain with stunning natural views.',
                             'price' => 500000,
                             'duration' => '4-5 hours'
                         ],
                         [
-                            'icon' => '🥾',
+                            'icon' => 'hiking',
                             'title' => 'Sunrise Trekking on Mount Batur',
                             'desc' => 'A guided jeep-assisted sunrise trek to Mount Batur\'s summit. Reach around 1,350m elevation for breathtaking dawn views.',
                             'price' => 750000,
                             'duration' => '6-7 hours'
                         ],
                         [
-                            'icon' => '🌾',
+                            'icon' => 'grass',
                             'title' => 'Rice Terrace Hiking',
                             'desc' => 'Walk through beautiful rice paddies and local villages. Learn about traditional farming from local guides.',
                             'price' => 400000,
                             'duration' => '3-4 hours'
                         ],
                         [
-                            'icon' => '🏞️',
+                            'icon' => 'photo_camera',
                             'title' => 'Valley Photography Tour',
                             'desc' => 'Capture stunning landscapes and natural scenery with professional photography guides.',
                             'price' => 600000,
                             'duration' => '5 hours'
                         ],
                         [
-                            'icon' => '🍴',
+                            'icon' => 'restaurant',
                             'title' => 'Cooking Class',
                             'desc' => 'Learn to prepare authentic local cuisine with our professional chefs. Perfect for food enthusiasts.',
                             'price' => 350000,
                             'duration' => '3 hours'
                         ],
                         [
-                            'icon' => '💆',
+                            'icon' => 'spa',
                             'title' => 'Spa & Wellness',
                             'desc' => 'Relax with traditional Balinese massage and spa treatments at our wellness center.',
                             'price' => 300000,
@@ -74,7 +75,7 @@
                 @foreach ($activities as $activity)
                 <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition overflow-hidden">
                     <div class="bg-gradient-to-r from-orange-400 to-orange-600 p-8 flex items-center justify-center h-32">
-                        <span class="text-6xl">{{ $activity['icon'] }}</span>
+                        <span class="material-symbols-outlined text-white text-6xl select-none">{{ $activity['icon'] }}</span>
                     </div>
                     <div class="p-6">
                         <h3 class="text-2xl font-bold mb-2">{{ $activity['title'] }}</h3>

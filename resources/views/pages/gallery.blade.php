@@ -24,36 +24,23 @@
     <section class="py-16 md:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                @php
-                    $gallery_items = [
-                        ['title' => 'Mountain View', 'category' => 'Landscape'],
-                        ['title' => 'Valley Sunrise', 'category' => 'Landscape'],
-                        ['title' => 'Luxury Suite', 'category' => 'Rooms'],
-                        ['title' => 'Pool Area', 'category' => 'Facilities'],
-                        ['title' => 'Family Suite', 'category' => 'Rooms'],
-                        ['title' => 'Restaurant View', 'category' => 'Dining'],
-                        ['title' => 'Sunset View', 'category' => 'Landscape'],
-                        ['title' => 'Spa Area', 'category' => 'Facilities'],
-                        ['title' => 'Guest Room', 'category' => 'Rooms'],
-                        ['title' => 'Outdoor Seating', 'category' => 'Facilities'],
-                        ['title' => 'Night View', 'category' => 'Landscape'],
-                        ['title' => 'Cafe Corner', 'category' => 'Dining'],
-                    ];
-                @endphp
-                
-                @foreach ($gallery_items as $index => $item)
-                <div class="aspect-square bg-gradient-to-br from-gray-300 to-gray-400 rounded-lg overflow-hidden hover:shadow-lg transition cursor-pointer group">
-                    <div class="w-full h-full flex items-center justify-center relative">
-                        <span class="text-gray-600 font-semibold text-center group-hover:opacity-0 transition">{{ $item['title'] }}</span>
-                        <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                @forelse ($photos as $photo)
+                <div class="aspect-square bg-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition relative group">
+                    <img src="{{ asset('storage/' . $photo->image) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="{{ $photo->caption }}">
+                    @if($photo->caption)
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center p-4">
                             <div class="text-center text-white">
-                                <p class="font-bold">{{ $item['title'] }}</p>
-                                <p class="text-sm text-gray-300">{{ $item['category'] }}</p>
+                                <p class="font-bold text-sm leading-snug">{{ $photo->caption }}</p>
                             </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
-                @endforeach
+                @empty
+                    <div class="col-span-full py-12 text-center text-gray-500">
+                        <span class="text-4xl block mb-2">📷</span>
+                        No gallery photos uploaded yet.
+                    </div>
+                @endforelse
             </div>
         </div>
     </section>

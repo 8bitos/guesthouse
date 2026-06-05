@@ -19,14 +19,18 @@
             <!-- CTA Buttons -->
             <div class="flex gap-4 items-center">
                 @auth
-                    <a href="{{ url('/dashboard') }}" class="text-gray-700 hover:text-orange-600">Dashboard</a>
-                    <form method="POST" action="{{ url('/logout') }}" class="inline">
+                    @if(auth()->user()->role === 'admin')
+                        <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-amber-700 font-semibold">Dashboard</a>
+                    @else
+                        <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-amber-700 font-semibold">Dashboard</a>
+                    @endif
+                    <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
-                        <button type="submit" class="text-gray-700 hover:text-orange-600">Logout</button>
+                        <button type="submit" class="text-gray-700 hover:text-red-600 font-semibold cursor-pointer">Logout</button>
                     </form>
                 @else
-                    <a href="#" onclick="alert('Login feature coming soon')" class="text-gray-700 hover:text-amber-700">Login</a>
-                    <a href="#" onclick="alert('Register feature coming soon')" class="bg-amber-700 hover:bg-amber-800 text-white px-4 py-2 rounded-lg">Register</a>
+                    <a href="{{ route('login') }}" class="text-gray-700 hover:text-amber-700 font-semibold">Login</a>
+                    <a href="{{ route('register') }}" class="bg-amber-700 hover:bg-amber-800 text-white px-4 py-2 rounded-lg font-semibold">Register</a>
                 @endauth
                 <a href="https://wa.me/6282169911168" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg hidden sm:inline-block">
                     WhatsApp

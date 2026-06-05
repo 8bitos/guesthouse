@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Our Rooms - Bagus Guest House</title>
     @fonts
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
@@ -24,50 +25,50 @@
     <section class="py-16 md:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                @php
-                    $all_rooms = [
-                        ['name' => 'Family Suite 1', 'size' => 25, 'guests' => 4, 'price' => 910000, 'beds' => '1 King + 2 Others', 'desc' => 'Perfect for families with stunning mountain views and modern amenities.'],
-                        ['name' => 'Family Suite 2', 'size' => 25, 'guests' => 4, 'price' => 1040000, 'beds' => '1 King + 2 Others', 'desc' => 'Spacious family accommodation with separate living area.'],
-                        ['name' => 'Suite 3', 'size' => 25, 'guests' => 2, 'price' => 1200000, 'beds' => '1 King', 'desc' => 'Luxurious suite with premium furnishings and valley views.'],
-                        ['name' => 'Suite 4', 'size' => 25, 'guests' => 2, 'price' => 910000, 'beds' => '1 King', 'desc' => 'Comfortable suite ideal for couples and honeymooners.'],
-                        ['name' => 'Suite 5', 'size' => 25, 'guests' => 2, 'price' => 1040000, 'beds' => '1 King', 'desc' => 'Modern suite with elegant design and mountain vistas.'],
-                        ['name' => 'Potato Room 1', 'size' => 9, 'guests' => 2, 'price' => 650000, 'beds' => '1 Queen', 'desc' => 'Cozy shared bathroom room with valley views.'],
-                        ['name' => 'Potato Room 2', 'size' => 9, 'guests' => 2, 'price' => 650000, 'beds' => '1 Queen', 'desc' => 'Budget-friendly accommodation with shared facilities.'],
-                        ['name' => 'Potato Room 3', 'size' => 9, 'guests' => 2, 'price' => 650000, 'beds' => '1 Queen', 'desc' => 'Intimate room perfect for budget travelers.'],
-                    ];
-                @endphp
-                
-                @foreach ($all_rooms as $room)
-                <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition">
-                    <div class="h-48 bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                        <span class="text-gray-500 text-lg">🏠 {{ $room['name'] }}</span>
+                @foreach ($rooms as $room)
+                <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition flex flex-col justify-between">
+                    <div>
+                        <div class="h-48 bg-gray-100 border-b overflow-hidden flex items-center justify-center relative">
+                            @if ($room->image)
+                                <img src="{{ asset('storage/' . $room->image) }}" class="w-full h-full object-cover" alt="{{ $room->name }}">
+                            @else
+                                <div class="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 flex flex-col items-center justify-center text-gray-400 p-4 text-center gap-1.5">
+                                    <span class="material-symbols-outlined text-4xl text-gray-500">bed</span>
+                                    <span class="text-sm font-bold uppercase tracking-wider text-gray-500">{{ $room->name }}</span>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">{{ $room->name }}</h3>
+                            <p class="text-gray-600 text-sm mb-4">
+                                {{ $room->description ?? 'Spacious room with modern amenities and stunning views.' }}
+                            </p>
+                            
+                            <div class="mb-4 space-y-2 text-sm text-gray-600">
+                                <div class="flex justify-between">
+                                    <span>Size:</span>
+                                    <span class="font-semibold">{{ $room->capacity >= 4 ? 25 : 9 }} m²</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Capacity:</span>
+                                    <span class="font-semibold">{{ $room->capacity }} Adults</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Beds:</span>
+                                    <span class="font-semibold">{{ $room->capacity >= 4 ? '1 King + 2 Others' : ($room->capacity == 2 ? '1 King' : '1 Single') }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="border-t pt-4 mb-4">
+                                <div class="text-amber-700 font-bold text-lg">From RP{{ number_format($room->price, 0, ',', '.') }} / night</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold mb-2">{{ $room['name'] }}</h3>
-                        <p class="text-gray-600 text-sm mb-4">{{ $room['desc'] }}</p>
-                        
-                        <div class="mb-4 space-y-2 text-sm text-gray-600">
-                            <div class="flex justify-between">
-                                <span>Size:</span>
-                                <span class="font-semibold">{{ $room['size'] }} m²</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Capacity:</span>
-                                <span class="font-semibold">{{ $room['guests'] }} Adults</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Beds:</span>
-                                <span class="font-semibold">{{ $room['beds'] }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="border-t pt-4 mb-4">
-                            <div class="text-amber-700 font-bold text-lg">From RP{{ number_format($room['price'], 0, ',', '.') }} / night</div>
-                        </div>
-                        
-                        <button onclick="alert('Booking feature coming soon!')" class="w-full bg-amber-700 hover:bg-amber-800 text-white py-2 rounded-lg font-semibold transition">
+                    
+                    <div class="px-6 pb-6">
+                        <a href="{{ route('booking', ['room_id' => $room->id]) }}" class="inline-block text-center w-full bg-amber-700 hover:bg-amber-800 text-white py-2 rounded-lg font-semibold transition">
                             Book This Room
-                        </button>
+                        </a>
                     </div>
                 </div>
                 @endforeach
