@@ -42,6 +42,9 @@ class RoomController extends Controller
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:tersedia,dipesan,perbaikan'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'allow_breakfast' => ['nullable', 'boolean'],
+            'allow_extra_bed' => ['nullable', 'boolean'],
+            'allow_late_checkout' => ['nullable', 'boolean'],
         ]);
 
         $imagePath = null;
@@ -57,6 +60,9 @@ class RoomController extends Controller
             'description' => $request->description,
             'status' => $request->status,
             'image' => $imagePath,
+            'allow_breakfast' => $request->boolean('allow_breakfast'),
+            'allow_extra_bed' => $request->boolean('allow_extra_bed'),
+            'allow_late_checkout' => $request->boolean('allow_late_checkout'),
         ]);
 
         return redirect()->route('admin.rooms.index')->with('success', 'Room created successfully.');
@@ -83,6 +89,9 @@ class RoomController extends Controller
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:tersedia,dipesan,perbaikan'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'allow_breakfast' => ['nullable', 'boolean'],
+            'allow_extra_bed' => ['nullable', 'boolean'],
+            'allow_late_checkout' => ['nullable', 'boolean'],
         ]);
 
         $roomData = [
@@ -92,6 +101,9 @@ class RoomController extends Controller
             'capacity' => $request->capacity,
             'description' => $request->description,
             'status' => $request->status,
+            'allow_breakfast' => $request->boolean('allow_breakfast'),
+            'allow_extra_bed' => $request->boolean('allow_extra_bed'),
+            'allow_late_checkout' => $request->boolean('allow_late_checkout'),
         ];
 
         if ($request->hasFile('image')) {

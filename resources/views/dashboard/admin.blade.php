@@ -134,7 +134,22 @@
                                         @endif
                                     </td>
                                     <!-- Room -->
-                                    <td class="px-6 py-4 font-medium text-gray-700">{{ $booking['room'] }}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="block font-medium text-gray-700">{{ $booking['room'] }}</span>
+                                        @if ($booking['include_breakfast'] || $booking['include_extra_bed'] || $booking['late_checkout'])
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                @if ($booking['include_breakfast'])
+                                                    <span class="bg-blue-50 text-blue-700 border border-blue-100 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded">Breakfast</span>
+                                                @endif
+                                                @if ($booking['include_extra_bed'])
+                                                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded">Extra Bed</span>
+                                                @endif
+                                                @if ($booking['late_checkout'])
+                                                    <span class="bg-purple-50 text-purple-700 border border-purple-100 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded">Late CO</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </td>
                                     <!-- Dates -->
                                     <td class="px-6 py-4 text-xs text-gray-600">{{ $booking['dates'] }}</td>
                                     <!-- Status -->

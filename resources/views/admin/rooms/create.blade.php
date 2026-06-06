@@ -59,9 +59,16 @@
                     <!-- Room Type -->
                     <div class="space-y-1">
                         <label for="type" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Room Type</label>
-                        <input id="type" type="text" name="type" value="{{ old('type') }}" required
-                               class="w-full bg-transparent border-b-2 border-gray-200 focus:border-blue-500 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300"
-                               placeholder="e.g. Suite, Villa, Deluxe">
+                        <select id="type" name="type" required
+                                class="w-full bg-transparent border-b-2 border-gray-200 focus:border-blue-500 focus:outline-none py-2 text-gray-700 transition">
+                            <option value="" disabled {{ old('type') ? '' : 'selected' }}>Select Room Type</option>
+                            <option value="Standard Room" {{ old('type') === 'Standard Room' ? 'selected' : '' }}>Standard Room</option>
+                            <option value="Deluxe Room" {{ old('type') === 'Deluxe Room' ? 'selected' : '' }}>Deluxe Room</option>
+                            <option value="Twin Room" {{ old('type') === 'Twin Room' ? 'selected' : '' }}>Twin Room</option>
+                            <option value="Suite" {{ old('type') === 'Suite' ? 'selected' : '' }}>Suite</option>
+                            <option value="Family Room" {{ old('type') === 'Family Room' ? 'selected' : '' }}>Family Room</option>
+                            <option value="Villa" {{ old('type') === 'Villa' ? 'selected' : '' }}>Villa</option>
+                        </select>
                     </div>
 
                     <!-- Price per Night -->
@@ -96,6 +103,36 @@
                         <label for="image" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Room Image</label>
                         <input id="image" type="file" name="image" accept="image/*"
                                class="w-full bg-transparent border-b-2 border-gray-200 focus:border-blue-500 focus:outline-none py-1.5 text-gray-600 transition">
+                    </div>
+                </div>
+
+                <!-- Allowed Add-ons / Extras -->
+                <div class="border-t border-gray-100 pt-6">
+                    <h4 class="text-sm font-bold text-gray-800 uppercase tracking-widest mb-4">Available Extras & Add-ons</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <label class="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100/50 transition select-none">
+                            <input type="checkbox" name="allow_breakfast" value="1" {{ old('allow_breakfast', true) ? 'checked' : '' }} class="w-4 h-4 border border-gray-300 rounded text-blue-600 focus:ring-blue-500">
+                            <div class="text-xs">
+                                <span class="block font-bold text-gray-800">Breakfast (Sarapan)</span>
+                                <span class="block text-gray-400 text-[10px]">Enable sarapan addon</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100/50 transition select-none">
+                            <input type="checkbox" name="allow_extra_bed" value="1" {{ old('allow_extra_bed', true) ? 'checked' : '' }} class="w-4 h-4 border border-gray-300 rounded text-blue-600 focus:ring-blue-500">
+                            <div class="text-xs">
+                                <span class="block font-bold text-gray-800">Extra Bed (Kasur)</span>
+                                <span class="block text-gray-400 text-[10px]">Enable kasur tambahan</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100/50 transition select-none">
+                            <input type="checkbox" name="allow_late_checkout" value="1" {{ old('allow_late_checkout', true) ? 'checked' : '' }} class="w-4 h-4 border border-gray-300 rounded text-blue-600 focus:ring-blue-500">
+                            <div class="text-xs">
+                                <span class="block font-bold text-gray-800">Late Check-out</span>
+                                <span class="block text-gray-400 text-[10px]">Enable late check-out</span>
+                            </div>
+                        </label>
                     </div>
                 </div>
 

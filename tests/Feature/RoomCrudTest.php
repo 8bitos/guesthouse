@@ -43,12 +43,18 @@ test('admins can store a new room with image upload', function () {
         'description' => 'A grand villa with valley views.',
         'status' => 'tersedia',
         'image' => $file,
+        'allow_breakfast' => true,
+        'allow_extra_bed' => false,
+        'allow_late_checkout' => true,
     ]);
 
     $response->assertRedirect(route('admin.rooms.index'));
     $this->assertDatabaseHas('rooms', [
         'name' => 'Presidents Villa',
         'price' => 2500000,
+        'allow_breakfast' => true,
+        'allow_extra_bed' => false,
+        'allow_late_checkout' => true,
     ]);
 
     $room = Room::where('name', 'Presidents Villa')->first();
@@ -67,6 +73,9 @@ test('admins can edit and update room details', function () {
         'capacity' => 2,
         'description' => 'Cozy cabin.',
         'status' => 'tersedia',
+        'allow_breakfast' => true,
+        'allow_extra_bed' => true,
+        'allow_late_checkout' => true,
     ]);
 
     $response = $this->actingAs($admin)->put(route('admin.rooms.update', $room), [
@@ -76,6 +85,9 @@ test('admins can edit and update room details', function () {
         'capacity' => 2,
         'description' => 'Updated cozy cabin.',
         'status' => 'perbaikan',
+        'allow_breakfast' => false,
+        'allow_extra_bed' => true,
+        'allow_late_checkout' => false,
     ]);
 
     $response->assertRedirect(route('admin.rooms.index'));
@@ -84,6 +96,9 @@ test('admins can edit and update room details', function () {
         'name' => 'Standard Cabin Updated',
         'price' => 550000,
         'status' => 'perbaikan',
+        'allow_breakfast' => false,
+        'allow_extra_bed' => true,
+        'allow_late_checkout' => false,
     ]);
 });
 

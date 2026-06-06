@@ -31,46 +31,71 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
         <!-- Top Availability Check Widget -->
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-8">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
-                <div class="space-y-1">
-                    <label for="check-in-input" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Check-in Date</label>
-                    <div class="relative">
-                        <input type="date" id="check-in-input" 
-                               class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
+            <!-- Header Keterangan Detail Pemesanan -->
+            <div class="flex items-center gap-2 border-b border-gray-100 pb-3 mb-5">
+                <span class="material-symbols-outlined text-amber-700 text-lg leading-none">info</span>
+                <span class="text-xs font-black uppercase tracking-wider text-gray-700">Detail Pemesanan / Stay Configuration</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Check-in Date -->
+                <div class="space-y-1.5 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            <span class="material-symbols-outlined text-amber-700 text-sm">login</span>
+                            <label for="check-in-input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Check-in Date</label>
+                        </div>
+                        <div class="relative">
+                            <input type="date" id="check-in-input" 
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
+                        </div>
                     </div>
+                    <span class="block text-[10px] text-gray-400 font-semibold mt-1">Check-in: 14:00 - 22:00</span>
                 </div>
 
-                <div class="space-y-1">
-                    <label for="check-out-input" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Check-out Date</label>
-                    <div class="relative">
-                        <input type="date" id="check-out-input" 
-                               class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
+                <!-- Check-out Date -->
+                <div class="space-y-1.5 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            <span class="material-symbols-outlined text-amber-700 text-sm">logout</span>
+                            <label for="check-out-input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Check-out Date</label>
+                        </div>
+                        <div class="relative">
+                            <input type="date" id="check-out-input" 
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
+                        </div>
                     </div>
+                    <span class="block text-[10px] text-gray-400 font-semibold mt-1">Check-out: 08:00 - 12:00</span>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="space-y-1">
-                        <label for="adults-input" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Adults</label>
-                        <input type="number" id="adults-input" min="1" value="2" 
-                               class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
+                <!-- Adults Count -->
+                <div class="space-y-1.5 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            <span class="material-symbols-outlined text-amber-700 text-sm">person</span>
+                            <label for="adults-input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Adults</label>
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="adults-input" min="1" value="2" 
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
+                        </div>
                     </div>
-                    <div class="space-y-1">
-                        <label for="children-input" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Children</label>
-                        <input type="number" id="children-input" min="0" value="0" 
-                               class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
-                    </div>
+                    <span class="block text-[10px] text-gray-400 font-semibold mt-1">Age 13 or above</span>
                 </div>
 
-                <div class="space-y-1">
-                    <label for="promo-input" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Promo Code</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="promo-input" placeholder="e.g. WELCOME10"
-                               class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 uppercase tracking-wider transition">
-                        <button type="button" id="btn-apply-promo" 
-                                class="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer">
-                            Apply
-                        </button>
+                <!-- Children Count -->
+                <div class="space-y-1.5 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            <span class="material-symbols-outlined text-amber-700 text-sm">child_care</span>
+                            <label for="children-input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Children</label>
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="children-input" min="0" value="0" 
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
+                        </div>
                     </div>
+                    <span class="block text-[10px] text-gray-400 font-semibold mt-1">Age 12 or below</span>
                 </div>
             </div>
         </div>
@@ -78,15 +103,27 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Left Side: Rooms List -->
             <div class="lg:col-span-2 space-y-6">
-                <h2 class="text-xl font-bold text-gray-800 border-b pb-3 border-gray-200 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-amber-700">hotel</span>
-                    <span>Select Your Accommodation</span>
-                </h2>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-3 border-gray-200 gap-4">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-700">hotel</span>
+                        <span>Select Your Accommodation</span>
+                    </h2>
+                    
+                    <!-- Availability Toggle -->
+                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox" id="toggle-available-only" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-700"></div>
+                        <span class="ms-3 text-xs font-bold text-gray-700">Tampilkan Kamar Tersedia Saja</span>
+                    </label>
+                </div>
 
                 <div class="space-y-6">
                     @forelse($rooms as $room)
                         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col sm:flex-row transition duration-300 hover:shadow-md room-card cursor-pointer" 
                              id="room-card-{{ $room->id }}" data-room-id="{{ $room->id }}" data-room-name="{{ $room->name }}" data-room-price="{{ $room->price }}"
+                             data-allow-breakfast="{{ $room->allow_breakfast ? 1 : 0 }}"
+                             data-allow-extra-bed="{{ $room->allow_extra_bed ? 1 : 0 }}"
+                             data-allow-late-checkout="{{ $room->allow_late_checkout ? 1 : 0 }}"
                              onclick="selectRoom({{ $room->id }})">
                             <!-- Room Image -->
                             <div class="sm:w-1/3 aspect-[4/3] sm:aspect-auto bg-gray-100 overflow-hidden flex items-center justify-center shrink-0 relative border-b sm:border-b-0 sm:border-r border-gray-100">
@@ -128,12 +165,23 @@
                                             <span>{{ $room->capacity >= 4 ? '1 King + Sofa Bed' : '1 King Bed' }}</span>
                                         </span>
                                     </div>
+
+                                    <!-- Booked Status Notice -->
+                                    <div class="room-booked-status-container hidden mt-3">
+                                        <div class="inline-flex items-center gap-1.5 bg-red-50 border border-red-200 text-red-700 px-3 py-1.5 rounded-lg text-[11px] font-bold">
+                                            <span class="material-symbols-outlined text-sm leading-none text-red-600">error</span>
+                                            <span>Sudah dibooking sampai : <span class="room-booked-until-date">-</span></span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="flex items-end justify-between border-t border-gray-50 pt-4 gap-4">
                                     <div>
                                         <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Price per night</span>
                                         <span class="text-lg font-black text-amber-700">RP {{ number_format($room->price, 0, ',', '.') }}</span>
+                                        <span class="block text-[9px] text-gray-400 font-semibold mt-0.5 room-card-duration-price hidden" id="duration-price-{{ $room->id }}" data-base-price="{{ $room->price }}">
+                                            Price for 0 night(s): RP 0
+                                        </span>
                                     </div>
 
                                     <button type="button" class="btn-select-room border border-amber-700 text-amber-700 hover:bg-amber-50 px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer select-none"
@@ -201,6 +249,19 @@
                                 <span>Room Subtotal:</span>
                                 <span class="font-semibold text-gray-900" id="summary-subtotal">RP 0</span>
                             </div>
+                            <!-- Extras rows -->
+                            <div class="flex justify-between text-gray-600 hidden" id="summary-breakfast-row">
+                                <span>Breakfast (Sarapan):</span>
+                                <span class="font-semibold text-gray-900" id="summary-breakfast-amount">RP 0</span>
+                            </div>
+                            <div class="flex justify-between text-gray-600 hidden" id="summary-extra-bed-row">
+                                <span>Extra Bed (Kasur):</span>
+                                <span class="font-semibold text-gray-900" id="summary-extra-bed-amount">RP 0</span>
+                            </div>
+                            <div class="flex justify-between text-gray-600 hidden" id="summary-late-checkout-row">
+                                <span>Late Check-out:</span>
+                                <span class="font-semibold text-gray-900" id="summary-late-checkout-amount">RP 0</span>
+                            </div>
                             <div class="flex justify-between text-green-700 hidden" id="summary-discount-row">
                                 <span id="summary-discount-label">Discount (10%):</span>
                                 <span class="font-semibold" id="summary-discount-amount">-RP 0</span>
@@ -256,6 +317,61 @@
                                     <textarea id="guest-requests" rows="3"
                                               class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition resize-none"
                                               placeholder="e.g. extra bed, early check-in, etc."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add-ons & Extras -->
+                        <div class="space-y-4 border-t border-gray-100 pt-6">
+                            <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-gray-500 text-base leading-none">add_box</span>
+                                <span>Extras & Add-ons</span>
+                            </h4>
+
+                            <div class="space-y-3">
+                                <!-- Breakfast Option -->
+                                <div id="opt-breakfast" onclick="toggleAddon('breakfast')" class="group flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-amber-700 bg-white hover:bg-amber-50/10 cursor-pointer transition select-none">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-amber-700 text-lg">restaurant</span>
+                                        <div>
+                                            <span class="block text-xs font-bold text-gray-800">Breakfast (Sarapan)</span>
+                                            <span class="block text-[10px] text-gray-500">+RP 50.000 / guest / night</span>
+                                        </div>
+                                    </div>
+                                    <div class="addon-status-indicator flex items-center justify-center w-6 h-6 rounded-full border border-gray-200 bg-gray-50 text-gray-300 group-hover:text-gray-400 group-hover:border-gray-300 transition font-bold" id="indicator-breakfast" style="display: flex;">
+                                        <span class="material-symbols-outlined text-xs font-bold leading-none">close</span>
+                                    </div>
+                                    <input type="checkbox" id="addon-breakfast-checkbox" class="hidden" name="include_breakfast" value="1">
+                                </div>
+
+                                <!-- Extra Bed Option -->
+                                <div id="opt-extra-bed" onclick="toggleAddon('extra-bed')" class="group flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-amber-700 bg-white hover:bg-amber-50/10 cursor-pointer transition select-none">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-amber-700 text-lg">bed</span>
+                                        <div>
+                                            <span class="block text-xs font-bold text-gray-800">Extra Bed (Kasur Tambahan)</span>
+                                            <span class="block text-[10px] text-gray-500">+RP 150.000 / night</span>
+                                        </div>
+                                    </div>
+                                    <div class="addon-status-indicator flex items-center justify-center w-6 h-6 rounded-full border border-gray-200 bg-gray-50 text-gray-300 group-hover:text-gray-400 group-hover:border-gray-300 transition font-bold" id="indicator-extra-bed" style="display: flex;">
+                                        <span class="material-symbols-outlined text-xs font-bold leading-none">close</span>
+                                    </div>
+                                    <input type="checkbox" id="addon-extra-bed-checkbox" class="hidden" name="include_extra_bed" value="1">
+                                </div>
+
+                                <!-- Late Check-out Option -->
+                                <div id="opt-late-checkout" onclick="toggleAddon('late-checkout')" class="group flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-amber-700 bg-white hover:bg-amber-50/10 cursor-pointer transition select-none">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-amber-700 text-lg">schedule</span>
+                                        <div>
+                                            <span class="block text-xs font-bold text-gray-800">Late Check-out</span>
+                                            <span class="block text-[10px] text-gray-500">+RP 100.000 flat</span>
+                                        </div>
+                                    </div>
+                                    <div class="addon-status-indicator flex items-center justify-center w-6 h-6 rounded-full border border-gray-200 bg-gray-50 text-gray-300 group-hover:text-gray-400 group-hover:border-gray-300 transition font-bold" id="indicator-late-checkout" style="display: flex;">
+                                        <span class="material-symbols-outlined text-xs font-bold leading-none">close</span>
+                                    </div>
+                                    <input type="checkbox" id="addon-late-checkout-checkbox" class="hidden" name="late_checkout" value="1">
                                 </div>
                             </div>
                         </div>
@@ -330,6 +446,19 @@
                         <div class="flex justify-between py-1 border-b border-gray-200/50">
                             <span class="text-gray-500">Guests:</span>
                             <strong class="text-gray-900" id="modal-guests">2 adults</strong>
+                        </div>
+                        <!-- Modal details rows for add-ons -->
+                        <div class="flex justify-between py-1 border-b border-gray-200/50 hidden" id="modal-breakfast-row">
+                            <span class="text-gray-500">Breakfast (Sarapan):</span>
+                            <strong class="text-gray-900" id="modal-breakfast-val">Yes</strong>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-gray-200/50 hidden" id="modal-extra-bed-row">
+                            <span class="text-gray-500">Extra Bed (Kasur):</span>
+                            <strong class="text-gray-900" id="modal-extra-bed-val">Yes</strong>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-gray-200/50 hidden" id="modal-late-checkout-row">
+                            <span class="text-gray-500">Late Check-out:</span>
+                            <strong class="text-gray-900" id="modal-late-checkout-val">Yes</strong>
                         </div>
                         <div class="flex justify-between py-1 pt-2">
                             <span class="text-sm font-bold text-gray-900">Total Price:</span>
@@ -505,6 +634,19 @@
                                 <tr>
                                     <td style="padding: 3px 0; color: #6b7280;">Room Rate Subtotal</td>
                                     <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-subtotal">RP 0</td>
+                                </tr>
+                                <!-- Extras rows for receipt -->
+                                <tr id="receipt-breakfast-row" style="display: none;">
+                                    <td style="padding: 3px 0; color: #6b7280;">Breakfast (Sarapan)</td>
+                                    <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-breakfast-amount">RP 0</td>
+                                </tr>
+                                <tr id="receipt-extra-bed-row" style="display: none;">
+                                    <td style="padding: 3px 0; color: #6b7280;">Extra Bed (Kasur)</td>
+                                    <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-extra-bed-amount">RP 0</td>
+                                </tr>
+                                <tr id="receipt-late-checkout-row" style="display: none;">
+                                    <td style="padding: 3px 0; color: #6b7280;">Late Check-out</td>
+                                    <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-late-checkout-amount">RP 0</td>
                                 </tr>
                                 <tr id="receipt-discount-row" style="display: none;">
                                     <td style="padding: 3px 0; color: #16a34a;" id="receipt-discount-label">Discount</td>

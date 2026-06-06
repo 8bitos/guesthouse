@@ -25,6 +25,9 @@ class RoomFactory extends Factory
             'description' => fake()->sentence(),
             'status' => 'tersedia',
             'image' => null,
+            'allow_breakfast' => true,
+            'allow_extra_bed' => true,
+            'allow_late_checkout' => true,
         ];
     }
 }

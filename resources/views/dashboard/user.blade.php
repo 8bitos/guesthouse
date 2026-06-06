@@ -258,6 +258,18 @@
                                 <td style="padding: 3px 0; color: #6b7280;">Room Rate Subtotal</td>
                                 <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-subtotal">RP 0</td>
                             </tr>
+                            <tr id="receipt-breakfast-row" style="display: none;">
+                                <td style="padding: 3px 0; color: #6b7280;">Breakfast (Sarapan)</td>
+                                <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-breakfast-amount">RP 0</td>
+                            </tr>
+                            <tr id="receipt-extra-bed-row" style="display: none;">
+                                <td style="padding: 3px 0; color: #6b7280;">Extra Bed (Kasur)</td>
+                                <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-extra-bed-amount">RP 0</td>
+                            </tr>
+                            <tr id="receipt-late-checkout-row" style="display: none;">
+                                <td style="padding: 3px 0; color: #6b7280;">Late Check-out</td>
+                                <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-late-checkout-amount">RP 0</td>
+                            </tr>
                             <tr id="receipt-discount-row" style="display: none;">
                                 <td style="padding: 3px 0; color: #16a34a;" id="receipt-discount-label">Discount</td>
                                 <td style="padding: 3px 0; color: #16a34a; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-discount-amount">-RP 0</td>
@@ -328,6 +340,35 @@
 
             document.getElementById('receipt-subtotal').textContent = 'RP ' + (isNaN(subtotalVal) ? booking.subtotal : subtotalVal.toLocaleString('id-ID'));
             
+            // Populating extras in dashboard user receipt modal
+            var recBreakfastRow = document.getElementById('receipt-breakfast-row');
+            if (booking.include_breakfast && booking.include_breakfast != 0) {
+                var totalGuests = parseInt(booking.adults) + parseInt(booking.children);
+                var bCost = 50000 * totalGuests * parseInt(booking.nights);
+                document.getElementById('receipt-breakfast-amount').textContent = 'RP ' + bCost.toLocaleString('id-ID');
+                recBreakfastRow.style.display = '';
+            } else {
+                recBreakfastRow.style.display = 'none';
+            }
+
+            var recExtraBedRow = document.getElementById('receipt-extra-bed-row');
+            if (booking.include_extra_bed && booking.include_extra_bed != 0) {
+                var ebCost = 150000 * parseInt(booking.nights);
+                document.getElementById('receipt-extra-bed-amount').textContent = 'RP ' + ebCost.toLocaleString('id-ID');
+                recExtraBedRow.style.display = '';
+            } else {
+                recExtraBedRow.style.display = 'none';
+            }
+
+            var recLateCheckoutRow = document.getElementById('receipt-late-checkout-row');
+            if (booking.late_checkout && booking.late_checkout != 0) {
+                var lcCost = 100000;
+                document.getElementById('receipt-late-checkout-amount').textContent = 'RP ' + lcCost.toLocaleString('id-ID');
+                recLateCheckoutRow.style.display = '';
+            } else {
+                recLateCheckoutRow.style.display = 'none';
+            }
+
             var recDiscountRow = document.getElementById('receipt-discount-row');
             if (!isNaN(discountVal) && discountVal > 0) {
                 document.getElementById('receipt-discount-label').textContent = 'Discount:';

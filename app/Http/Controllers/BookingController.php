@@ -23,6 +23,41 @@ class BookingController extends Controller
     }
 
     /**
+     * Check room availability for a given date range.
+     */
+    public function checkAvailability(Request $request): JsonResponse
+    {
+        $request->validate([
+            'check_in' => ['required', 'date'],
+            'check_out' => ['required', 'date', 'after:check_in'],
+        ]);
+
+        $checkIn = $request->query('check_in');
+        $checkOut = $request->query('check_out');
+
+        // Find bookings that overlap with this range and are active
+        $bookings = Booking::whereIn('status', ['pending', 'confirmed'])
+            ->where('check_in', '<', $checkOut)
+            ->where('check_out', '>', $checkIn)
+            ->get();
+
+        $bookedRooms = $bookings->groupBy('room_id')->map(function ($roomBookings) {
+            $latestBooking = $roomBookings->sortByDesc('check_out')->first();
+
+            return [
+                'room_id' => $latestBooking->room_id,
+                'check_out' => $latestBooking->check_out,
+                'check_out_formatted' => date('d M Y', strtotime($latestBooking->check_out)),
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'booked_rooms' => $bookedRooms,
+        ]);
+    }
+
+    /**
      * Store a newly created booking in storage.
      */
     public function store(Request $request): JsonResponse
@@ -34,6 +69,9 @@ class BookingController extends Controller
             'guest_phone' => ['required', 'string', 'max:20'],
             'guest_country' => ['required', 'string', 'max:255'],
             'special_requests' => ['nullable', 'string'],
+            'include_breakfast' => ['nullable', 'in:0,1,true,false'],
+            'include_extra_bed' => ['nullable', 'in:0,1,true,false'],
+            'late_checkout' => ['nullable', 'in:0,1,true,false'],
             'check_in' => ['required', 'date', 'after_or_equal:today'],
             'check_out' => ['required', 'date', 'after:check_in'],
             'nights' => ['required', 'integer', 'min:1'],
@@ -71,6 +109,9 @@ class BookingController extends Controller
             'guest_phone' => $request->guest_phone,
             'guest_country' => $request->guest_country,
             'special_requests' => $request->special_requests,
+            'include_breakfast' => (bool) $request->input('include_breakfast', false),
+            'include_extra_bed' => (bool) $request->input('include_extra_bed', false),
+            'late_checkout' => (bool) $request->input('late_checkout', false),
             'check_in' => $request->check_in,
             'check_out' => $request->check_out,
             'nights' => $request->nights,
@@ -98,6 +139,9 @@ class BookingController extends Controller
                 'nights' => $booking->nights,
                 'adults' => $booking->adults,
                 'children' => $booking->children,
+                'include_breakfast' => $booking->include_breakfast,
+                'include_extra_bed' => $booking->include_extra_bed,
+                'late_checkout' => $booking->late_checkout,
                 'subtotal' => (float) $booking->subtotal,
                 'discount' => (float) $booking->discount,
                 'tax' => (float) $booking->tax,

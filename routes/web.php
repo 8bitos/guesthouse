@@ -77,6 +77,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:pelanggan')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'user'])->name('dashboard');
         Route::get('/booking', [BookingController::class, 'index'])->name('booking');
+        Route::get('/booking/check-availability', [BookingController::class, 'checkAvailability'])->name('booking.check-availability');
         Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     });
 

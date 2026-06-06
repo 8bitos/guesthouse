@@ -14,6 +14,13 @@ let taxAmount = 0;
 let totalAmount = 0;
 let selectedPaymentMethod = null;
 
+let includeBreakfast = false;
+let includeExtraBed = false;
+let lateCheckout = false;
+let breakfastCost = 0;
+let extraBedCost = 0;
+let lateCheckoutCost = 0;
+
 // ── Defensive DOM Helpers ──────────────────────────────────
 function setElText(id, text) {
     var el = document.getElementById(id);
@@ -99,9 +106,46 @@ function calculateNights() {
         setElText('summary-check-out', formatDateDisplay(checkOutVal));
         setElText('summary-nights', nights + ' night(s)');
 
+        // Update stay price in room cards
+        document.querySelectorAll('.room-card-duration-price').forEach(function(el) {
+            var basePrice = parseInt(el.getAttribute('data-base-price')) || 0;
+            if (nights > 0 && basePrice > 0) {
+                var stayPrice = basePrice * nights;
+                el.textContent = 'Price for ' + nights + ' night(s): RP ' + stayPrice.toLocaleString('id-ID');
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        });
+
         recalculatePricing();
+        fetchRoomAvailability();
     } catch (err) {
         console.error('Error in calculateNights:', err);
+    }
+}
+
+// ── Reset Add-on State Helper ──────────────────────────────
+function resetAddonState(addonKey) {
+    try {
+        var checkbox = document.getElementById('addon-' + addonKey + '-checkbox');
+        if (checkbox && checkbox.checked) {
+            checkbox.checked = false;
+            var card = document.getElementById('opt-' + addonKey);
+            var indicator = document.getElementById('indicator-' + addonKey);
+            if (card) {
+                card.style.borderColor = '';
+                card.style.backgroundColor = '';
+            }
+            if (indicator) {
+                indicator.style.borderColor = '';
+                indicator.style.backgroundColor = '';
+                indicator.style.color = '';
+                indicator.innerHTML = '<span class="material-symbols-outlined text-xs font-bold leading-none">close</span>';
+            }
+        }
+    } catch (err) {
+        console.error('Error in resetAddonState:', err);
     }
 }
 
@@ -138,6 +182,32 @@ function selectRoom(roomId) {
             selectBtn.className = 'btn-select-room bg-amber-700 text-white px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer select-none';
         }
 
+        // Update add-ons visibility
+        var allowBreakfast = card.getAttribute('data-allow-breakfast') === '1';
+        var allowExtraBed = card.getAttribute('data-allow-extra-bed') === '1';
+        var allowLateCheckout = card.getAttribute('data-allow-late-checkout') === '1';
+
+        if (allowBreakfast) {
+            setElClass('opt-breakfast', 'remove', 'hidden');
+        } else {
+            setElClass('opt-breakfast', 'add', 'hidden');
+            resetAddonState('breakfast');
+        }
+
+        if (allowExtraBed) {
+            setElClass('opt-extra-bed', 'remove', 'hidden');
+        } else {
+            setElClass('opt-extra-bed', 'add', 'hidden');
+            resetAddonState('extra-bed');
+        }
+
+        if (allowLateCheckout) {
+            setElClass('opt-late-checkout', 'remove', 'hidden');
+        } else {
+            setElClass('opt-late-checkout', 'add', 'hidden');
+            resetAddonState('late-checkout');
+        }
+
         // Update summary card
         setElClass('summary-no-room', 'add', 'hidden');
         setElClass('summary-room-details', 'remove', 'hidden');
@@ -150,31 +220,139 @@ function selectRoom(roomId) {
     }
 }
 
-// ── Promo Code ─────────────────────────────────────────────
-function applyPromoCode() {
-    try {
-        var promoInput = document.getElementById('promo-input');
-        var code = promoInput ? promoInput.value.trim().toUpperCase() : '';
-        if (!code) {
-            discountPercent = 0;
-            recalculatePricing();
-            return;
-        }
+// ── Room Availability State & Functions ───────────────────
+let bookedRoomIdsMap = {};
 
-        if (code === 'WELCOME10') {
-            discountPercent = 10;
-            alert('Promo Code Applied: 10% Welcome Discount!');
-        } else if (code === 'BAGUS5') {
-            discountPercent = 5;
-            alert('Promo Code Applied: 5% Guesthouse Discount!');
-        } else {
-            discountPercent = 0;
-            alert('Invalid Promo Code.');
-        }
+function deselectCurrentRoom() {
+    try {
+        selectedRoom = null;
+        
+        // Reset all card states (remove rings, etc.)
+        document.querySelectorAll('.room-card').forEach(function (c) {
+            c.classList.remove('ring-2', 'ring-amber-700', 'border-amber-700/50');
+            var btn = c.querySelector('.btn-select-room');
+            if (btn && !c.classList.contains('opacity-60')) {
+                btn.textContent = 'Select Room';
+                btn.className = 'btn-select-room border border-amber-700 text-amber-700 hover:bg-amber-50 px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer select-none';
+            }
+        });
+
+        // Update summary card to "no room" state
+        setElClass('summary-no-room', 'remove', 'hidden');
+        setElClass('summary-room-details', 'add', 'hidden');
+        setElText('summary-room-name', '');
+        setElText('summary-room-rate', '');
 
         recalculatePricing();
     } catch (err) {
-        console.error('Error in applyPromoCode:', err);
+        console.error('Error in deselectCurrentRoom:', err);
+    }
+}
+
+function fetchRoomAvailability() {
+    try {
+        var checkInInput = document.getElementById('check-in-input');
+        var checkOutInput = document.getElementById('check-out-input');
+        if (!checkInInput || !checkOutInput) return;
+
+        var checkInVal = checkInInput.value;
+        var checkOutVal = checkOutInput.value;
+
+        if (!checkInVal || !checkOutVal) return;
+
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        fetch('/booking/check-availability?check_in=' + checkInVal + '&check_out=' + checkOutVal, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(res) {
+            if (!res.ok) throw new Error('Failed to fetch availability.');
+            return res.json();
+        })
+        .then(function(data) {
+            bookedRoomIdsMap = {};
+            if (data.booked_rooms) {
+                data.booked_rooms.forEach(function(room) {
+                    bookedRoomIdsMap[room.room_id] = room;
+                });
+            }
+            updateRoomsAvailabilityUI();
+        })
+        .catch(function(err) {
+            console.error('Error checking room availability:', err);
+        });
+    } catch (err) {
+        console.error('Error in fetchRoomAvailability:', err);
+    }
+}
+
+function updateRoomsAvailabilityUI() {
+    try {
+        var toggleAvailableOnly = document.getElementById('toggle-available-only');
+        var hideBooked = toggleAvailableOnly ? toggleAvailableOnly.checked : false;
+
+        document.querySelectorAll('.room-card').forEach(function(card) {
+            var roomId = parseInt(card.getAttribute('data-room-id'));
+            var isBooked = bookedRoomIdsMap.hasOwnProperty(roomId);
+
+            var statusContainer = card.querySelector('.room-booked-status-container');
+            var untilDateEl = card.querySelector('.room-booked-until-date');
+            var selectBtn = card.querySelector('.btn-select-room');
+
+            if (isBooked) {
+                // If the selected room is booked, deselect it!
+                if (selectedRoom && selectedRoom.id === roomId) {
+                    deselectCurrentRoom();
+                }
+
+                // Add gray out styling & disable events
+                card.classList.add('opacity-60', 'grayscale-[30%]', 'pointer-events-none');
+                
+                // Show notice
+                if (statusContainer) statusContainer.classList.remove('hidden');
+                if (untilDateEl) untilDateEl.textContent = bookedRoomIdsMap[roomId].check_out_formatted;
+
+                // Disable select button
+                if (selectBtn) {
+                    selectBtn.textContent = 'Already Booked';
+                    selectBtn.className = 'btn-select-room bg-gray-100 text-gray-400 border border-gray-200 px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-not-allowed select-none pointer-events-none';
+                }
+
+                // Toggle visibility based on filter
+                if (hideBooked) {
+                    card.classList.add('hidden');
+                } else {
+                    card.classList.remove('hidden');
+                }
+            } else {
+                // Restore normal state
+                card.classList.remove('opacity-60', 'grayscale-[30%]', 'pointer-events-none');
+                
+                if (statusContainer) statusContainer.classList.add('hidden');
+
+                // If this room is currently selected, make sure button says Selected ✓
+                if (selectedRoom && selectedRoom.id === roomId) {
+                    card.classList.add('ring-2', 'ring-amber-700', 'border-amber-700/50');
+                    if (selectBtn) {
+                        selectBtn.textContent = 'Selected ✓';
+                        selectBtn.className = 'btn-select-room bg-amber-700 text-white px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer select-none';
+                    }
+                } else {
+                    if (selectBtn) {
+                        selectBtn.textContent = 'Select Room';
+                        selectBtn.className = 'btn-select-room border border-amber-700 text-amber-700 hover:bg-amber-50 px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer select-none';
+                    }
+                }
+
+                card.classList.remove('hidden');
+            }
+        });
+    } catch (err) {
+        console.error('Error in updateRoomsAvailabilityUI:', err);
     }
 }
 
@@ -186,11 +364,58 @@ function recalculatePricing() {
             setElClass('summary-discount-row', 'add', 'hidden');
             setElText('summary-tax', 'RP 0');
             setElText('summary-total', 'RP 0');
+            
+            setElClass('summary-breakfast-row', 'add', 'hidden');
+            setElClass('summary-extra-bed-row', 'add', 'hidden');
+            setElClass('summary-late-checkout-row', 'add', 'hidden');
             return;
         }
 
         subtotal = selectedRoom.price * nights;
         setElText('summary-subtotal', 'RP ' + subtotal.toLocaleString('id-ID'));
+
+        // Calculate Extras
+        var adults = parseInt(document.getElementById('adults-input').value) || 2;
+        var children = parseInt(document.getElementById('children-input').value) || 0;
+        var totalGuests = adults + children;
+
+        // Breakfast
+        var breakfastCheckbox = document.getElementById('addon-breakfast-checkbox');
+        includeBreakfast = breakfastCheckbox ? breakfastCheckbox.checked : false;
+        if (includeBreakfast) {
+            breakfastCost = 50000 * totalGuests * nights;
+            setElText('summary-breakfast-amount', 'RP ' + breakfastCost.toLocaleString('id-ID'));
+            setElClass('summary-breakfast-row', 'remove', 'hidden');
+        } else {
+            breakfastCost = 0;
+            setElClass('summary-breakfast-row', 'add', 'hidden');
+        }
+
+        // Extra Bed
+        var extraBedCheckbox = document.getElementById('addon-extra-bed-checkbox');
+        includeExtraBed = extraBedCheckbox ? extraBedCheckbox.checked : false;
+        if (includeExtraBed) {
+            extraBedCost = 150000 * nights;
+            setElText('summary-extra-bed-amount', 'RP ' + extraBedCost.toLocaleString('id-ID'));
+            setElClass('summary-extra-bed-row', 'remove', 'hidden');
+        } else {
+            extraBedCost = 0;
+            setElClass('summary-extra-bed-row', 'add', 'hidden');
+        }
+
+        // Late Check-out
+        var lateCheckoutCheckbox = document.getElementById('addon-late-checkout-checkbox');
+        lateCheckout = lateCheckoutCheckbox ? lateCheckoutCheckbox.checked : false;
+        if (lateCheckout) {
+            lateCheckoutCost = 100000;
+            setElText('summary-late-checkout-amount', 'RP ' + lateCheckoutCost.toLocaleString('id-ID'));
+            setElClass('summary-late-checkout-row', 'remove', 'hidden');
+        } else {
+            lateCheckoutCost = 0;
+            setElClass('summary-late-checkout-row', 'add', 'hidden');
+        }
+
+        var extrasTotal = breakfastCost + extraBedCost + lateCheckoutCost;
 
         if (discountPercent > 0) {
             discountAmount = Math.round(subtotal * (discountPercent / 100));
@@ -202,7 +427,7 @@ function recalculatePricing() {
             setElClass('summary-discount-row', 'add', 'hidden');
         }
 
-        var taxableAmount = subtotal - discountAmount;
+        var taxableAmount = subtotal - discountAmount + extrasTotal;
         taxAmount = Math.round(taxableAmount * 0.1);
         setElText('summary-tax', 'RP ' + taxAmount.toLocaleString('id-ID'));
 
@@ -210,6 +435,39 @@ function recalculatePricing() {
         setElText('summary-total', 'RP ' + totalAmount.toLocaleString('id-ID'));
     } catch (err) {
         console.error('Error in recalculatePricing:', err);
+    }
+}
+
+// ── Toggle Extras Addon ────────────────────────────────────
+function toggleAddon(addonKey) {
+    try {
+        var checkbox = document.getElementById('addon-' + addonKey + '-checkbox');
+        var card = document.getElementById('opt-' + addonKey);
+        var indicator = document.getElementById('indicator-' + addonKey);
+
+        if (!checkbox || !card || !indicator) return;
+
+        checkbox.checked = !checkbox.checked;
+
+        if (checkbox.checked) {
+            card.style.borderColor = '#b45309'; // amber-700
+            card.style.backgroundColor = '#fffbeb'; // amber-50
+            indicator.style.borderColor = '#10b981'; // emerald-500
+            indicator.style.backgroundColor = '#dcfce7'; // emerald-100
+            indicator.style.color = '#15803d'; // emerald-700
+            indicator.innerHTML = '<span class="material-symbols-outlined text-xs font-bold leading-none">check</span>';
+        } else {
+            card.style.borderColor = '';
+            card.style.backgroundColor = '';
+            indicator.style.borderColor = '';
+            indicator.style.backgroundColor = '';
+            indicator.style.color = '';
+            indicator.innerHTML = '<span class="material-symbols-outlined text-xs font-bold leading-none">close</span>';
+        }
+
+        recalculatePricing();
+    } catch (err) {
+        console.error('Error in toggleAddon:', err);
     }
 }
 
@@ -300,6 +558,9 @@ function submitBooking() {
     formData.append('guest_phone', phone);
     formData.append('guest_country', country);
     formData.append('special_requests', requests);
+    formData.append('include_breakfast', includeBreakfast ? 1 : 0);
+    formData.append('include_extra_bed', includeExtraBed ? 1 : 0);
+    formData.append('late_checkout', lateCheckout ? 1 : 0);
     formData.append('check_in', checkIn);
     formData.append('check_out', checkOut);
     formData.append('nights', nights);
@@ -349,6 +610,35 @@ function submitBooking() {
         // Pricing
         document.getElementById('receipt-subtotal').textContent = 'RP ' + booking.subtotal.toLocaleString('id-ID');
         
+        // Dynamic extras in receipt
+        var recBreakfastRow = document.getElementById('receipt-breakfast-row');
+        if (booking.include_breakfast && booking.include_breakfast != 0) {
+            var totalGuests = parseInt(booking.adults) + parseInt(booking.children);
+            var bCost = 50000 * totalGuests * parseInt(booking.nights);
+            document.getElementById('receipt-breakfast-amount').textContent = 'RP ' + bCost.toLocaleString('id-ID');
+            recBreakfastRow.style.display = '';
+        } else {
+            recBreakfastRow.style.display = 'none';
+        }
+
+        var recExtraBedRow = document.getElementById('receipt-extra-bed-row');
+        if (booking.include_extra_bed && booking.include_extra_bed != 0) {
+            var ebCost = 150000 * parseInt(booking.nights);
+            document.getElementById('receipt-extra-bed-amount').textContent = 'RP ' + ebCost.toLocaleString('id-ID');
+            recExtraBedRow.style.display = '';
+        } else {
+            recExtraBedRow.style.display = 'none';
+        }
+
+        var recLateCheckoutRow = document.getElementById('receipt-late-checkout-row');
+        if (booking.late_checkout && booking.late_checkout != 0) {
+            var lcCost = 100000;
+            document.getElementById('receipt-late-checkout-amount').textContent = 'RP ' + lcCost.toLocaleString('id-ID');
+            recLateCheckoutRow.style.display = '';
+        } else {
+            recLateCheckoutRow.style.display = 'none';
+        }
+
         var recDiscountRow = document.getElementById('receipt-discount-row');
         if (booking.discount > 0) {
             document.getElementById('receipt-discount-label').textContent = 'Discount:';
@@ -436,6 +726,32 @@ function handleBookingSubmit(e) {
     var guestsText = adults + ' adult(s)';
     if (parseInt(children) > 0) guestsText += ', ' + children + ' child(ren)';
     document.getElementById('modal-guests').textContent = guestsText;
+
+    // Toggle Modal Extras Rows
+    var mBreakfastRow = document.getElementById('modal-breakfast-row');
+    if (includeBreakfast) {
+        mBreakfastRow.classList.remove('hidden');
+        document.getElementById('modal-breakfast-val').textContent = 'Yes (RP ' + breakfastCost.toLocaleString('id-ID') + ')';
+    } else {
+        mBreakfastRow.classList.add('hidden');
+    }
+
+    var mExtraBedRow = document.getElementById('modal-extra-bed-row');
+    if (includeExtraBed) {
+        mExtraBedRow.classList.remove('hidden');
+        document.getElementById('modal-extra-bed-val').textContent = 'Yes (RP ' + extraBedCost.toLocaleString('id-ID') + ')';
+    } else {
+        mExtraBedRow.classList.add('hidden');
+    }
+
+    var mLateCheckoutRow = document.getElementById('modal-late-checkout-row');
+    if (lateCheckout) {
+        mLateCheckoutRow.classList.remove('hidden');
+        document.getElementById('modal-late-checkout-val').textContent = 'Yes (RP ' + lateCheckoutCost.toLocaleString('id-ID') + ')';
+    } else {
+        mLateCheckoutRow.classList.add('hidden');
+    }
+
     document.getElementById('modal-total-price').textContent = 'RP ' + totalAmount.toLocaleString('id-ID');
 
     // Reset file upload state
@@ -486,8 +802,10 @@ function initBooking() {
             checkOutInput.addEventListener('change', handleDateChange);
         }
 
-        var promoBtn = document.getElementById('btn-apply-promo');
-        if (promoBtn) promoBtn.addEventListener('click', applyPromoCode);
+        var toggleAvailableOnly = document.getElementById('toggle-available-only');
+        if (toggleAvailableOnly) {
+            toggleAvailableOnly.addEventListener('change', updateRoomsAvailabilityUI);
+        }
 
         var bookingForm = document.getElementById('booking-form');
         if (bookingForm) bookingForm.addEventListener('submit', handleBookingSubmit);
