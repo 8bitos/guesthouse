@@ -45,3 +45,19 @@ test('authenticated admin is redirected to admin dashboard when visiting login o
     $this->actingAs($user)->get('/login')->assertRedirect('/admin/dashboard');
     $this->actingAs($user)->get('/register')->assertRedirect('/admin/dashboard');
 });
+
+test('admin can access admin dashboard with different trend filters', function () {
+    $user = User::factory()->create([
+        'role' => 'admin',
+    ]);
+
+    $filters = ['today', '7days', '1month', '6months', '1year'];
+
+    foreach ($filters as $filter) {
+        $response = $this->actingAs($user)->get("/admin/dashboard?trend_filter={$filter}");
+        $response->assertStatus(200);
+        $response->assertViewHas('monthlyTrends');
+        $response->assertViewHas('guestOrigins');
+        $response->assertViewHas('trendFilter', $filter);
+    }
+});

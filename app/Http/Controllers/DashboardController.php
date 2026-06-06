@@ -104,20 +104,138 @@ class DashboardController extends Controller
             $query->whereIn('status', ['confirmed', 'completed']);
         }])->orderBy('bookings_count', 'desc')->take(5)->get();
 
-        // Calculate monthly occupancy & revenue trends (last 6 months, database-agnostic)
-        $activeBookingsForTrends = Booking::whereIn('status', ['confirmed', 'completed'])->get();
-        $monthlyTrends = $activeBookingsForTrends->groupBy(function ($booking) {
-            return date('Y-m', strtotime($booking->check_in));
-        })->map(function ($bookings, $month) {
-            return [
-                'raw_month' => $month,
-                'month' => date('M Y', strtotime($month.'-01')),
-                'bookings_count' => $bookings->count(),
-                'revenue' => (float) $bookings->sum('total_price'),
-            ];
-        })->sortBy('raw_month')->take(-6)->values()->toArray();
+        // Calculate occupancy & revenue trends based on filter
+        $trendFilter = $request->query('trend_filter', '6months');
+        $monthlyTrends = [];
+        $trendsTitle = 'Occupancy & Revenue Trends (Last 6 Months)';
+        $trendsColumnHeader = 'Month';
 
-        return view('dashboard.admin', compact('user', 'stats', 'recentBookings', 'favoriteRooms', 'monthlyTrends'));
+        if ($trendFilter === 'today') {
+            $trendsTitle = 'Occupancy & Revenue Trends (Today)';
+            $trendsColumnHeader = 'Room';
+            $todayStr = today()->format('Y-m-d');
+
+            $bookings = Booking::whereIn('status', ['confirmed', 'completed'])
+                ->whereDate('check_in', $todayStr)
+                ->get();
+
+            $rooms = Room::all();
+            foreach ($rooms as $room) {
+                $roomBookings = $bookings->where('room_id', $room->id);
+                $monthlyTrends[] = [
+                    'label' => $room->name,
+                    'bookings_count' => $roomBookings->count(),
+                    'revenue' => (float) $roomBookings->sum('total_price'),
+                ];
+            }
+        } elseif ($trendFilter === '7days') {
+            $trendsTitle = 'Occupancy & Revenue Trends (Last 7 Days)';
+            $trendsColumnHeader = 'Date';
+            $startDate = today()->subDays(6)->format('Y-m-d');
+
+            $bookings = Booking::whereIn('status', ['confirmed', 'completed'])
+                ->where('check_in', '>=', $startDate)
+                ->get();
+
+            for ($i = 6; $i >= 0; $i--) {
+                $date = today()->subDays($i);
+                $dateStr = $date->format('Y-m-d');
+                $dayBookings = $bookings->filter(function ($b) use ($dateStr) {
+                    return date('Y-m-d', strtotime($b->check_in)) === $dateStr;
+                });
+
+                $monthlyTrends[] = [
+                    'label' => $date->format('d M'),
+                    'bookings_count' => $dayBookings->count(),
+                    'revenue' => (float) $dayBookings->sum('total_price'),
+                ];
+            }
+        } elseif ($trendFilter === '1month') {
+            $trendsTitle = 'Occupancy & Revenue Trends (Last 30 Days)';
+            $trendsColumnHeader = 'Date';
+            $startDate = today()->subDays(29)->format('Y-m-d');
+
+            $bookings = Booking::whereIn('status', ['confirmed', 'completed'])
+                ->where('check_in', '>=', $startDate)
+                ->get();
+
+            for ($i = 29; $i >= 0; $i--) {
+                $date = today()->subDays($i);
+                $dateStr = $date->format('Y-m-d');
+                $dayBookings = $bookings->filter(function ($b) use ($dateStr) {
+                    return date('Y-m-d', strtotime($b->check_in)) === $dateStr;
+                });
+
+                $monthlyTrends[] = [
+                    'label' => $date->format('d M'),
+                    'bookings_count' => $dayBookings->count(),
+                    'revenue' => (float) $dayBookings->sum('total_price'),
+                ];
+            }
+        } elseif ($trendFilter === '1year') {
+            $trendsTitle = 'Occupancy & Revenue Trends (Last 12 Months)';
+            $trendsColumnHeader = 'Month';
+            $startDate = today()->subMonths(11)->startOfMonth()->format('Y-m-d');
+
+            $bookings = Booking::whereIn('status', ['confirmed', 'completed'])
+                ->where('check_in', '>=', $startDate)
+                ->get();
+
+            for ($i = 11; $i >= 0; $i--) {
+                $month = today()->subMonths($i);
+                $monthStr = $month->format('Y-m');
+                $monthBookings = $bookings->filter(function ($b) use ($monthStr) {
+                    return date('Y-m', strtotime($b->check_in)) === $monthStr;
+                });
+
+                $monthlyTrends[] = [
+                    'label' => $month->format('M Y'),
+                    'bookings_count' => $monthBookings->count(),
+                    'revenue' => (float) $monthBookings->sum('total_price'),
+                ];
+            }
+        } else { // default: 6months
+            $trendsTitle = 'Occupancy & Revenue Trends (Last 6 Months)';
+            $trendsColumnHeader = 'Month';
+            $startDate = today()->subMonths(5)->startOfMonth()->format('Y-m-d');
+
+            $bookings = Booking::whereIn('status', ['confirmed', 'completed'])
+                ->where('check_in', '>=', $startDate)
+                ->get();
+
+            for ($i = 5; $i >= 0; $i--) {
+                $month = today()->subMonths($i);
+                $monthStr = $month->format('Y-m');
+                $monthBookings = $bookings->filter(function ($b) use ($monthStr) {
+                    return date('Y-m', strtotime($b->check_in)) === $monthStr;
+                });
+
+                $monthlyTrends[] = [
+                    'label' => $month->format('M Y'),
+                    'bookings_count' => $monthBookings->count(),
+                    'revenue' => (float) $monthBookings->sum('total_price'),
+                ];
+            }
+        }
+
+        // Calculate guest origin trends (top 5 origins, database-agnostic)
+        $guestOrigins = Booking::whereIn('status', ['confirmed', 'completed'])
+            ->pluck('guest_country')
+            ->map(function ($country) {
+                return trim($country);
+            })
+            ->filter()
+            ->countBy()
+            ->sortDesc()
+            ->take(5)
+            ->map(function ($count, $country) {
+                return [
+                    'country' => $country,
+                    'count' => $count,
+                ];
+            })->values()->toArray();
+
+        return view('dashboard.admin', compact('user', 'stats', 'recentBookings', 'favoriteRooms', 'monthlyTrends', 'trendsTitle', 'trendsColumnHeader', 'trendFilter', 'guestOrigins'));
     }
 
     /**
