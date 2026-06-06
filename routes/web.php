@@ -6,12 +6,12 @@ use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Models\Facility;
 use App\Models\Gallery;
 use App\Models\Room;
 use App\Models\Setting;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes
@@ -76,17 +76,16 @@ Route::middleware('auth')->group(function () {
     // User (Pelanggan) Routes
     Route::middleware('role:pelanggan')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'user'])->name('dashboard');
-        Route::get('/booking', function (Request $request) {
-            $rooms = Room::where('status', 'tersedia')->get();
-            $selectedRoomId = $request->query('room_id');
-
-            return view('pages.booking', compact('rooms', 'selectedRoomId'));
-        })->name('booking');
+        Route::get('/booking', [BookingController::class, 'index'])->name('booking');
+        Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     });
 
     // Admin Routes
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/dashboard', [DashboardController::class, 'admin'])->name('admin.dashboard');
+        Route::post('/admin/bookings/{booking}/approve', [DashboardController::class, 'approveBooking'])->name('admin.bookings.approve');
+        Route::post('/admin/bookings/{booking}/reject', [DashboardController::class, 'rejectBooking'])->name('admin.bookings.reject');
+
         Route::resource('admin/rooms', RoomController::class)->names([
             'index' => 'admin.rooms.index',
             'create' => 'admin.rooms.create',

@@ -140,5 +140,7 @@ class DatabaseSeeder extends Seeder
         Setting::setValue('about_desc', 'Experience luxury hospitality with breathtaking mountain and valley views. Bagus Guest House offers modern facilities, comfortable accommodations, and world-class dining in a serene natural setting.');
         Setting::setValue('about_why_list', "Spectacular mountain and valley views\nModern luxury accommodations\nWorld-class dining and cafe\nProfessional and friendly staff");
         Setting::setValue('about_vision', 'To be the most preferred luxury accommodation destination in the region, offering unforgettable experiences and exceptional hospitality.');
+
+        $this->call(BookingSeeder::class);
     }
 }

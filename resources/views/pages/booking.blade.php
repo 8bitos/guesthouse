@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Reservation - Bagus Guest House</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @fonts
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
@@ -351,65 +352,62 @@
                 </div>
 
                 <!-- STEP 2: Choose Payment Method -->
+                <!-- STEP 2: Bank Transfer Payment -->
                 <div id="modal-step-payment" class="p-6 sm:p-8 space-y-6 hidden">
                     <div class="text-center space-y-2">
-                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-50 text-blue-600 mb-3">
-                            <span class="material-symbols-outlined text-3xl">payments</span>
+                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-50 text-amber-700 mb-3">
+                            <span class="material-symbols-outlined text-3xl">account_balance</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900">Select Payment Method</h3>
-                        <p class="text-xs text-gray-500">Choose a dummy payment option below to finalize your booking.</p>
+                        <h3 class="text-xl font-bold text-gray-900">Bank Transfer Payment</h3>
+                        <p class="text-xs text-gray-500">Transfer the exact amount to the account below and upload your receipt.</p>
                     </div>
 
-                    <!-- Payment Options -->
-                    <div class="space-y-3">
-                        <!-- Virtual Account -->
-                        <div class="payment-option border border-gray-200 rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition" onclick="selectPaymentMethod('va')">
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-2xl text-blue-600">account_balance</span>
-                                <div>
-                                    <h4 class="text-xs font-bold text-gray-900">Virtual Account Transfer</h4>
-                                    <p class="text-[10px] text-gray-500">BCA, Mandiri, BNI, or BRI</p>
-                                </div>
-                            </div>
-                            <div class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center relative" id="pay-radio-va">
-                                <div class="w-2.5 h-2.5 rounded-full bg-amber-700 absolute hidden" id="pay-dot-va"></div>
+                    <!-- Bank Account Info -->
+                    <div class="bg-amber-50/50 border border-amber-100 rounded-xl p-4 space-y-2.5 text-xs">
+                        <div class="flex justify-between border-b border-amber-200/20 pb-2">
+                            <span class="text-gray-500">Bank Name:</span>
+                            <strong class="text-gray-900 font-bold uppercase">BCA (Bank Central Asia)</strong>
+                        </div>
+                        <div class="flex justify-between border-b border-amber-200/20 pb-2">
+                            <span class="text-gray-500">Account Number:</span>
+                            <div class="flex items-center gap-1.5">
+                                <strong class="text-gray-900 font-bold font-mono">123-456-7890</strong>
+                                <button type="button" onclick="navigator.clipboard.writeText('123-456-7890'); alert('Account number copied!');" class="text-[10px] text-amber-700 hover:underline font-bold focus:outline-none cursor-pointer">Copy</button>
                             </div>
                         </div>
-
-                        <!-- E-Wallet -->
-                        <div class="payment-option border border-gray-200 rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition" onclick="selectPaymentMethod('ewallet')">
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-2xl text-green-600">qr_code_2</span>
-                                <div>
-                                    <h4 class="text-xs font-bold text-gray-900">E-Wallet / QRIS</h4>
-                                    <p class="text-[10px] text-gray-500">GoPay, OVO, Dana, or LinkAja</p>
-                                </div>
-                            </div>
-                            <div class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center relative" id="pay-radio-ewallet">
-                                <div class="w-2.5 h-2.5 rounded-full bg-amber-700 absolute hidden" id="pay-dot-ewallet"></div>
-                            </div>
+                        <div class="flex justify-between border-b border-amber-200/20 pb-2">
+                            <span class="text-gray-500">Account Owner:</span>
+                            <strong class="text-gray-900 font-bold uppercase">Bagus Guest House</strong>
                         </div>
+                        <div class="flex justify-between pt-1 font-bold text-gray-900">
+                            <span>Transfer Amount:</span>
+                            <strong class="text-sm text-amber-700" id="transfer-amount-display">RP 0</strong>
+                        </div>
+                    </div>
 
-                        <!-- Credit Card -->
-                        <div class="payment-option border border-gray-200 rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition" onclick="selectPaymentMethod('cc')">
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-2xl text-purple-600">credit_card</span>
-                                <div>
-                                    <h4 class="text-xs font-bold text-gray-900">Credit / Debit Card</h4>
-                                    <p class="text-[10px] text-gray-500">Visa, Mastercard, or JCB</p>
-                                </div>
+                    <!-- File Upload -->
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Upload Transfer Receipt *</label>
+                        <div class="border-2 border-dashed border-gray-200 hover:border-amber-700/50 rounded-xl p-4 transition text-center relative bg-gray-50/30">
+                            <input type="file" id="payment-proof-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileSelect(event)">
+                            <div class="space-y-1" id="upload-placeholder">
+                                <span class="material-symbols-outlined text-3xl text-gray-400">upload_file</span>
+                                <p class="text-[11px] font-semibold text-gray-700">Click or drag receipt image here</p>
+                                <p class="text-[9px] text-gray-400">PNG, JPG, or JPEG up to 2MB</p>
                             </div>
-                            <div class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center relative" id="pay-radio-cc">
-                                <div class="w-2.5 h-2.5 rounded-full bg-amber-700 absolute hidden" id="pay-dot-cc"></div>
+                            <div class="hidden space-y-1" id="upload-success-preview">
+                                <span class="material-symbols-outlined text-3xl text-emerald-600">check_circle</span>
+                                <p class="text-[11px] font-bold text-emerald-800" id="upload-filename">receipt.jpg</p>
+                                <p class="text-[9px] text-gray-400">Selected. Click to replace.</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Actions -->
                     <div class="flex flex-col gap-2">
-                        <button type="button" id="btn-pay-now" onclick="processPayment()" disabled
+                        <button type="button" id="btn-pay-now" onclick="submitBooking()" disabled
                                 class="w-full bg-gray-300 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition flex items-center justify-center gap-2 cursor-not-allowed select-none">
-                            <span>Pay Now</span>
+                            <span>Submit Payment Proof</span>
                         </button>
                         <button type="button" onclick="goToStep('details')"
                                 class="w-full bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer select-none">
@@ -422,68 +420,115 @@
                 <div id="modal-step-processing" class="p-6 sm:p-8 space-y-6 hidden text-center select-none">
                     <div class="py-12 flex flex-col items-center justify-center space-y-4">
                         <div class="w-12 h-12 border-4 border-amber-700 border-t-transparent rounded-full animate-spin"></div>
-                        <h3 class="text-lg font-bold text-gray-900">Processing Payment...</h3>
-                        <p class="text-xs text-gray-500">Please do not refresh the page while we authenticate your transaction.</p>
+                        <h3 class="text-lg font-bold text-gray-900">Uploading Payment Proof...</h3>
+                        <p class="text-xs text-gray-500">Please do not refresh while we submit your booking request.</p>
                     </div>
                 </div>
 
                 <!-- STEP 3: Receipt / Nota -->
                 <div id="modal-step-receipt" class="p-6 sm:p-8 space-y-6 hidden">
                     <div class="text-center space-y-2">
-                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-50 text-green-600 mb-3">
-                            <span class="material-symbols-outlined text-3xl font-bold">check_circle</span>
+                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-50 text-yellow-600 mb-3">
+                            <span class="material-symbols-outlined text-3xl font-bold">schedule</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900">Payment Successful!</h3>
-                        <p class="text-xs text-gray-500">Thank you for booking with us. Here is your official guesthouse receipt.</p>
+                        <h3 class="text-xl font-bold text-gray-900">Booking Pending Verification!</h3>
+                        <p class="text-xs text-gray-500">We are verifying your transfer. Here is your temporary guesthouse receipt.</p>
                     </div>
-
                     <!-- Official Invoice / Receipt printable styling -->
-                    <div class="border border-gray-200 rounded-xl p-5 bg-gray-50/50 space-y-4 text-xs font-mono relative overflow-hidden" id="receipt-printable">
-                        <!-- Paid Watermark -->
-                        <div class="absolute -right-6 -top-2 bg-green-600 text-white font-sans font-black tracking-widest text-[9px] px-6 py-1.5 uppercase rotate-45 select-none">
-                            PAID / LUNAS
+                    <div id="receipt-printable" style="font-family: 'Inter', 'Segoe UI', sans-serif; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; width: 100%; box-sizing: border-box;">
+
+                        <!-- Top Status Banner -->
+                        <div id="receipt-watermark" style="background-color: #ca8a04; color: #fff; text-align: center; padding: 8px 16px; font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase;">
+                            PENDING
                         </div>
 
-                        <div class="text-center border-b border-dashed border-gray-300 pb-3">
-                            <h4 class="font-sans font-black text-sm text-amber-700 uppercase tracking-wide">Bagus Guest House</h4>
-                            <p class="text-[10px] text-gray-400 font-sans mt-0.5">Kintamani, Bali • +62 821-6991-1168</p>
+                        <!-- Branding Row -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; border-bottom: 1px solid #f3f4f6;">
+                            <div>
+                                <div style="font-size: 13px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.2;">Bagus Guest House</div>
+                                <div style="font-size: 10px; color: #9ca3af; margin-top: 2px;">Kintamani, Bali &bull; +62 821-6991-1168</div>
+                            </div>
+                            <span id="receipt-status-badge" style="background-color: #fef9c3; color: #854d0e; border: 1px solid #fde68a; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 999px; white-space: nowrap;">⏳ Pending</span>
                         </div>
 
-                        <!-- Invoice Header -->
-                        <div class="flex justify-between text-[10px] text-gray-500 border-b border-gray-100 pb-2">
-                            <span>INVOICE: <strong class="text-gray-800" id="receipt-invoice-no">BGH-2026-X102</strong></span>
-                            <span>DATE: <strong class="text-gray-800" id="receipt-date">-</strong></span>
+                        <!-- Invoice Number & Date -->
+                        <div style="display: flex; background: #f9fafb; border-bottom: 1px solid #f3f4f6;">
+                            <div style="flex: 1; padding: 10px 20px; border-right: 1px solid #f3f4f6;">
+                                <div style="font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 2px;">Invoice No.</div>
+                                <div style="font-size: 11px; font-weight: 700; color: #1f2937; font-family: monospace;" id="receipt-invoice-no">-</div>
+                            </div>
+                            <div style="flex: 1; padding: 10px 20px;">
+                                <div style="font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 2px;">Date Issued</div>
+                                <div style="font-size: 11px; font-weight: 700; color: #1f2937; font-family: monospace;" id="receipt-date">-</div>
+                            </div>
                         </div>
 
-                        <!-- Guest & Stay Details -->
-                        <div class="space-y-1.5">
-                            <div>GUEST: <span class="text-gray-800 font-bold" id="receipt-guest-name">-</span></div>
-                            <div>ROOM: <span class="text-gray-800 font-bold" id="receipt-room-name">-</span></div>
-                            <div>CHECK-IN: <span class="text-gray-800 font-bold" id="receipt-check-in">-</span></div>
-                            <div>CHECK-OUT: <span class="text-gray-800 font-bold" id="receipt-check-out">-</span></div>
-                            <div>DURATION: <span class="text-gray-800 font-bold" id="receipt-nights">-</span></div>
-                            <div>GUESTS: <span class="text-gray-800 font-bold" id="receipt-guests">-</span></div>
-                            <div>PAYMENT VIA: <span class="text-gray-800 font-bold uppercase" id="receipt-payment-method">-</span></div>
+                        <!-- Reservation Details -->
+                        <div style="padding: 14px 20px; border-bottom: 1px solid #f3f4f6;">
+                            <div style="font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 10px;">Reservation Details</div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                                <tr>
+                                    <td style="padding: 3px 0; color: #6b7280; width: 38%;">Guest Name</td>
+                                    <td style="padding: 3px 0; color: #111827; font-weight: 600;" id="receipt-guest-name">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #6b7280;">Room</td>
+                                    <td style="padding: 3px 0; color: #111827; font-weight: 600;" id="receipt-room-name">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #6b7280;">Check-In</td>
+                                    <td style="padding: 3px 0; color: #111827; font-weight: 600; font-family: monospace;" id="receipt-check-in">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #6b7280;">Check-Out</td>
+                                    <td style="padding: 3px 0; color: #111827; font-weight: 600; font-family: monospace;" id="receipt-check-out">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #6b7280;">Duration</td>
+                                    <td style="padding: 3px 0; color: #111827; font-weight: 600;" id="receipt-nights">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #6b7280;">Guests</td>
+                                    <td style="padding: 3px 0; color: #111827; font-weight: 600;" id="receipt-guests">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #6b7280;">Payment Via</td>
+                                    <td style="padding: 3px 0; color: #111827; font-weight: 600; text-transform: uppercase;" id="receipt-payment-method">-</td>
+                                </tr>
+                            </table>
                         </div>
 
-                        <!-- Pricing Breakdown -->
-                        <div class="border-t border-dashed border-gray-300 pt-3 space-y-1">
-                            <div class="flex justify-between">
-                                <span>Room Rate Subtotal:</span>
-                                <span class="text-gray-900 font-bold" id="receipt-subtotal">RP 0</span>
+                        <!-- Pricing -->
+                        <div style="padding: 14px 20px;">
+                            <div style="font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 10px;">Payment Summary</div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                                <tr>
+                                    <td style="padding: 3px 0; color: #6b7280;">Room Rate Subtotal</td>
+                                    <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-subtotal">RP 0</td>
+                                </tr>
+                                <tr id="receipt-discount-row" style="display: none;">
+                                    <td style="padding: 3px 0; color: #16a34a;" id="receipt-discount-label">Discount</td>
+                                    <td style="padding: 3px 0; color: #16a34a; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-discount-amount">-RP 0</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #6b7280;">Tax &amp; Service (10%)</td>
+                                    <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-tax">RP 0</td>
+                                </tr>
+                            </table>
+                            <!-- Total Row -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;">
+                                <span style="font-size: 10px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.08em;">Total Amount</span>
+                                <span style="font-size: 14px; font-weight: 800; color: #b45309; font-family: monospace;" id="receipt-total">RP 0</span>
                             </div>
-                            <div class="flex justify-between text-green-700 hidden" id="receipt-discount-row">
-                                <span id="receipt-discount-label">Discount:</span>
-                                <span class="font-bold" id="receipt-discount-amount">-RP 0</span>
+                        </div>
+
+                        <!-- Footer -->
+                        <div style="text-align: center; padding: 12px 20px 16px; border-top: 1px dashed #e5e7eb;">
+                            <p style="font-size: 10px; color: #9ca3af; margin: 0 0 10px; font-style: italic;">Thank you for choosing Bagus Guest House!</p>
+                            <div style="display: flex; align-items: flex-end; justify-content: center; gap: 1px; height: 24px; opacity: 0.4;">
+                                <div style="width:1px;height:100%;background:#374151;"></div><div style="width:2px;height:80%;background:#374151;"></div><div style="width:1px;height:100%;background:#374151;"></div><div style="width:3px;height:60%;background:#374151;"></div><div style="width:1px;height:100%;background:#374151;"></div><div style="width:2px;height:100%;background:#374151;"></div><div style="width:1px;height:70%;background:#374151;"></div><div style="width:3px;height:100%;background:#374151;"></div><div style="width:1px;height:85%;background:#374151;"></div><div style="width:2px;height:100%;background:#374151;"></div><div style="width:1px;height:100%;background:#374151;"></div><div style="width:2px;height:65%;background:#374151;"></div><div style="width:3px;height:100%;background:#374151;"></div><div style="width:1px;height:90%;background:#374151;"></div><div style="width:2px;height:100%;background:#374151;"></div><div style="width:1px;height:75%;background:#374151;"></div><div style="width:3px;height:100%;background:#374151;"></div><div style="width:1px;height:100%;background:#374151;"></div><div style="width:2px;height:80%;background:#374151;"></div><div style="width:1px;height:100%;background:#374151;"></div>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Tax & Service (10%):</span>
-                                <span class="text-gray-900 font-bold" id="receipt-tax">RP 0</span>
-                            </div>
-                            <div class="flex justify-between font-black text-gray-900 border-t border-gray-200 pt-2 text-sm">
-                                <span>TOTAL PAID:</span>
-                                <span class="text-amber-700 font-bold" id="receipt-total">RP 0</span>
-                            </div>
+                            <div style="font-size: 8px; font-family: monospace; color: #9ca3af; letter-spacing: 0.15em; margin-top: 4px; text-transform: uppercase;">★ BGH-RESERVATION ★</div>
                         </div>
                     </div>
 
@@ -508,6 +553,9 @@
 
     <!-- Footer -->
     @include('components.footer')
+
+    <!-- HTML2Canvas Pro Library for Receipt Printing (supports OKLCH colors used in Tailwind v4) -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.js"></script>
 
     <!-- Booking Interaction Logic (external to avoid HTML-parser conflicts) -->
     <script src="{{ asset('js/booking.js') }}"></script>

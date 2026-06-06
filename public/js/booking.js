@@ -226,130 +226,190 @@ function goToStep(step) {
 }
 
 function goToPaymentStep() {
+    var amtEl = document.getElementById('transfer-amount-display');
+    if (amtEl) amtEl.textContent = 'RP ' + totalAmount.toLocaleString('id-ID');
+    
+    // Reset file upload state
+    var fileInput = document.getElementById('payment-proof-input');
+    if (fileInput) fileInput.value = '';
+    
+    var placeholder = document.getElementById('upload-placeholder');
+    var preview = document.getElementById('upload-success-preview');
+    if (placeholder) placeholder.classList.remove('hidden');
+    if (preview) preview.classList.add('hidden');
+    
+    var payBtn = document.getElementById('btn-pay-now');
+    if (payBtn) {
+        payBtn.setAttribute('disabled', true);
+        payBtn.className = 'w-full bg-gray-300 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition flex items-center justify-center gap-2 cursor-not-allowed select-none';
+    }
+
     goToStep('payment');
 }
 
-// ── Payment Method Selection ───────────────────────────────
-function selectPaymentMethod(method) {
-    selectedPaymentMethod = method;
-
-    ['va', 'ewallet', 'cc'].forEach(function (m) {
-        var radio = document.getElementById('pay-dot-' + m);
-        if (!radio) return;
-        var optionCard = radio.closest('.payment-option');
-        if (m === method) {
-            radio.classList.remove('hidden');
-            if (optionCard) optionCard.classList.add('ring-2', 'ring-amber-700', 'border-amber-700/50', 'bg-amber-50/10');
-        } else {
-            radio.classList.add('hidden');
-            if (optionCard) optionCard.classList.remove('ring-2', 'ring-amber-700', 'border-amber-700/50', 'bg-amber-50/10');
-        }
-    });
-
+function handleFileSelect(e) {
+    var file = e.target.files[0];
+    var placeholder = document.getElementById('upload-placeholder');
+    var preview = document.getElementById('upload-success-preview');
+    var filenameEl = document.getElementById('upload-filename');
     var payBtn = document.getElementById('btn-pay-now');
-    if (payBtn) {
-        payBtn.removeAttribute('disabled');
-        payBtn.className = 'w-full bg-amber-700 hover:bg-amber-800 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-700/20 transition flex items-center justify-center gap-2 cursor-pointer select-none';
+
+    if (file) {
+        if (placeholder) placeholder.classList.add('hidden');
+        if (preview) preview.classList.remove('hidden');
+        if (filenameEl) filenameEl.textContent = file.name;
+        
+        if (payBtn) {
+            payBtn.removeAttribute('disabled');
+            payBtn.className = 'w-full bg-amber-700 hover:bg-amber-800 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-700/20 transition flex items-center justify-center gap-2 cursor-pointer select-none';
+        }
+    } else {
+        if (placeholder) placeholder.classList.remove('hidden');
+        if (preview) preview.classList.add('hidden');
+        
+        if (payBtn) {
+            payBtn.setAttribute('disabled', true);
+            payBtn.className = 'w-full bg-gray-300 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition flex items-center justify-center gap-2 cursor-not-allowed select-none';
+        }
     }
 }
 
-// ── Process Payment (Simulated) ────────────────────────────
-function processPayment() {
-    if (!selectedPaymentMethod) return;
+function submitBooking() {
+    var fileInput = document.getElementById('payment-proof-input');
+    if (!fileInput || !fileInput.files[0]) {
+        alert('Please upload your payment transfer receipt first!');
+        return;
+    }
 
     goToStep('processing');
 
-    setTimeout(function () {
-        var name = document.getElementById('guest-name').value.trim();
-        var checkIn = document.getElementById('check-in-input').value;
-        var checkOut = document.getElementById('check-out-input').value;
-        var adults = document.getElementById('adults-input').value;
-        var children = document.getElementById('children-input').value;
+    var name = document.getElementById('guest-name').value.trim();
+    var email = document.getElementById('guest-email').value.trim();
+    var phone = document.getElementById('guest-phone').value.trim();
+    var country = document.getElementById('guest-country').value.trim();
+    var requests = document.getElementById('guest-requests').value.trim();
+    var checkIn = document.getElementById('check-in-input').value;
+    var checkOut = document.getElementById('check-out-input').value;
+    var adults = document.getElementById('adults-input').value;
+    var children = document.getElementById('children-input').value;
 
-        // Generate invoice details
-        var randomId = Math.floor(1000 + Math.random() * 9000);
-        var now = new Date();
-        var invoiceNo = 'BGH-' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + '-' + randomId;
-        var today = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    var formData = new FormData();
+    formData.append('room_id', selectedRoom.id);
+    formData.append('guest_name', name);
+    formData.append('guest_email', email);
+    formData.append('guest_phone', phone);
+    formData.append('guest_country', country);
+    formData.append('special_requests', requests);
+    formData.append('check_in', checkIn);
+    formData.append('check_out', checkOut);
+    formData.append('nights', nights);
+    formData.append('adults', adults);
+    formData.append('children', children);
+    formData.append('subtotal', subtotal);
+    formData.append('discount', discountAmount);
+    formData.append('tax', taxAmount);
+    formData.append('total_price', totalAmount);
+    formData.append('payment_proof', fileInput.files[0]);
 
-        // Map payment method code to text
-        var methodText = 'Virtual Account';
-        if (selectedPaymentMethod === 'ewallet') methodText = 'E-Wallet / QRIS';
-        if (selectedPaymentMethod === 'cc') methodText = 'Credit Card';
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        // Fill receipt
-        document.getElementById('receipt-invoice-no').textContent = invoiceNo;
-        document.getElementById('receipt-date').textContent = today;
-        document.getElementById('receipt-guest-name').textContent = name;
-        document.getElementById('receipt-room-name').textContent = selectedRoom.name;
-        document.getElementById('receipt-check-in').textContent = formatDateDisplay(checkIn);
-        document.getElementById('receipt-check-out').textContent = formatDateDisplay(checkOut);
-        document.getElementById('receipt-nights').textContent = nights + ' night(s)';
-
-        var guestsText = adults + ' adult(s)';
-        if (parseInt(children) > 0) guestsText += ', ' + children + ' child(ren)';
+    fetch('/booking', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(function(res) {
+        return res.json().then(function(data) {
+            if (!res.ok) {
+                throw new Error(data.message || data.error || 'Something went wrong during submission.');
+            }
+            return data;
+        });
+    })
+    .then(function(data) {
+        var booking = data.booking;
+        
+        // Fill receipt data
+        document.getElementById('receipt-invoice-no').textContent = booking.invoice_no;
+        document.getElementById('receipt-date').textContent = booking.date;
+        document.getElementById('receipt-guest-name').textContent = booking.guest_name;
+        document.getElementById('receipt-room-name').textContent = booking.room_name;
+        document.getElementById('receipt-check-in').textContent = formatDateDisplay(booking.check_in);
+        document.getElementById('receipt-check-out').textContent = formatDateDisplay(booking.check_out);
+        document.getElementById('receipt-nights').textContent = booking.nights + ' night(s)';
+        
+        var guestsText = booking.adults + ' adult(s)';
+        if (parseInt(booking.children) > 0) guestsText += ', ' + booking.children + ' child(ren)';
         document.getElementById('receipt-guests').textContent = guestsText;
-        document.getElementById('receipt-payment-method').textContent = methodText;
+        document.getElementById('receipt-payment-method').textContent = booking.payment_method;
 
         // Pricing
-        document.getElementById('receipt-subtotal').textContent = 'RP ' + subtotal.toLocaleString('id-ID');
-
+        document.getElementById('receipt-subtotal').textContent = 'RP ' + booking.subtotal.toLocaleString('id-ID');
+        
         var recDiscountRow = document.getElementById('receipt-discount-row');
-        if (discountPercent > 0) {
-            document.getElementById('receipt-discount-label').textContent = 'Discount (' + discountPercent + '%):';
-            document.getElementById('receipt-discount-amount').textContent = '-RP ' + discountAmount.toLocaleString('id-ID');
-            recDiscountRow.classList.remove('hidden');
+        if (booking.discount > 0) {
+            document.getElementById('receipt-discount-label').textContent = 'Discount:';
+            document.getElementById('receipt-discount-amount').textContent = '-RP ' + booking.discount.toLocaleString('id-ID');
+            recDiscountRow.style.display = '';
         } else {
-            recDiscountRow.classList.add('hidden');
+            recDiscountRow.style.display = 'none';
+        }
+        
+        document.getElementById('receipt-tax').textContent = 'RP ' + booking.tax.toLocaleString('id-ID');
+        document.getElementById('receipt-total').textContent = 'RP ' + booking.total_price.toLocaleString('id-ID');
+
+        // Force watermark and badge to PENDING
+        var watermark = document.getElementById('receipt-watermark');
+        if (watermark) {
+            watermark.textContent = 'PENDING';
+            watermark.style.backgroundColor = '#ca8a04';
+        }
+        var statusBadge = document.getElementById('receipt-status-badge');
+        if (statusBadge) {
+            statusBadge.style.backgroundColor = '#fef9c3';
+            statusBadge.style.color = '#854d0e';
+            statusBadge.style.borderColor = '#fde68a';
+            statusBadge.innerHTML = '⏳ Pending Verification';
         }
 
-        document.getElementById('receipt-tax').textContent = 'RP ' + taxAmount.toLocaleString('id-ID');
-        document.getElementById('receipt-total').textContent = 'RP ' + totalAmount.toLocaleString('id-ID');
-
         goToStep('receipt');
-    }, 1800);
+    })
+    .catch(function(err) {
+        alert('Error: ' + err.message);
+        goToStep('payment');
+    });
 }
 
 // ── Print Receipt ──────────────────────────────────────────
 function printReceipt() {
-    var printContent = document.getElementById('receipt-printable').innerHTML;
-    var printWindow = window.open('', '_blank');
-    var css = [
-        'body { font-family: monospace; padding: 40px; color: #000; font-size: 13px; line-height: 1.5; }',
-        '.text-center { text-align: center; }',
-        '.border-b { border-bottom: 1px solid #ccc; }',
-        '.border-b-dashed { border-bottom: 1px dashed #000; }',
-        '.pb-3 { padding-bottom: 15px; }',
-        '.pb-2 { padding-bottom: 10px; }',
-        '.pt-3 { padding-top: 15px; }',
-        '.pt-2 { padding-top: 10px; }',
-        '.mb-2 { margin-bottom: 10px; }',
-        '.space-y-1\\.5 > * { margin-bottom: 6px; }',
-        '.flex { display: flex; }',
-        '.justify-between { display: flex; justify-content: space-between; }',
-        '.font-bold { font-weight: bold; }',
-        '.uppercase { text-transform: uppercase; }',
-        '.text-amber-700 { color: #b45309; }',
-        '.relative { position: relative; }',
-        '.absolute { position: absolute; }',
-        '.right-0 { right: 0; }',
-        '.top-0 { top: 0; }',
-        '.border-2 { border: 2px solid #000; }',
-        '.p-2 { padding: 8px; }'
-    ].join('\n');
-
-    var html = '<!DOCTYPE html><html><head>'
-        + '<title>Invoice - Bagus Guest House<\/title>'
-        + '<style>' + css + '<\/style>'
-        + '</head><body>'
-        + '<div style="max-width:420px;margin:0 auto;border:1px solid #ddd;padding:20px;border-radius:10px;">'
-        + printContent
-        + '</div>'
-        + '<scr' + 'ipt>window.onload=function(){window.print();window.close();};<\/scr' + 'ipt>'
-        + '</body></html>';
-
-    printWindow.document.write(html);
-    printWindow.document.close();
+    var receiptEl = document.getElementById('receipt-printable');
+    if (!receiptEl) {
+        alert('Receipt element not found.');
+        return;
+    }
+    // html2canvas-pro may expose as html2canvas or html2canvas.default
+    var h2c = (typeof html2canvas !== 'undefined') ? (html2canvas.default || html2canvas) : null;
+    if (!h2c) {
+        alert('html2canvas library is missing. Please check your internet connection and reload.');
+        return;
+    }
+    h2c(receiptEl, { scale: 2, useCORS: true }).then(function (canvas) {
+        var imgData = canvas.toDataURL('image/png');
+        var link = document.createElement('a');
+        link.href = imgData;
+        var now = new Date();
+        var timestamp = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2);
+        link.download = 'receipt_' + timestamp + '.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }).catch(function (err) {
+        console.error('Error generating receipt image:', err);
+        alert('Failed to generate receipt image. Error: ' + err.message);
+    });
 }
 
 // ── Booking Form Submission ────────────────────────────────
@@ -378,15 +438,15 @@ function handleBookingSubmit(e) {
     document.getElementById('modal-guests').textContent = guestsText;
     document.getElementById('modal-total-price').textContent = 'RP ' + totalAmount.toLocaleString('id-ID');
 
-    // Reset selected payment method state
-    selectedPaymentMethod = null;
-    ['va', 'ewallet', 'cc'].forEach(function (m) {
-        var dot = document.getElementById('pay-dot-' + m);
-        if (!dot) return;
-        dot.classList.add('hidden');
-        var card = dot.closest('.payment-option');
-        if (card) card.classList.remove('ring-2', 'ring-amber-700', 'border-amber-700/50', 'bg-amber-50/10');
-    });
+    // Reset file upload state
+    var fileInput = document.getElementById('payment-proof-input');
+    if (fileInput) fileInput.value = '';
+    
+    var placeholder = document.getElementById('upload-placeholder');
+    var preview = document.getElementById('upload-success-preview');
+    if (placeholder) placeholder.classList.remove('hidden');
+    if (preview) preview.classList.add('hidden');
+    
     var payBtn = document.getElementById('btn-pay-now');
     if (payBtn) {
         payBtn.setAttribute('disabled', true);

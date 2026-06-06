@@ -90,12 +90,19 @@
             </div>
         </div>
 
+        @if (session('success'))
+            <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-4 text-xs font-semibold flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Left 2 Columns: Bookings Table -->
             <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
                 <div class="px-6 py-5 border-b border-gray-200/80 flex justify-between items-center bg-gray-50">
                     <h2 class="text-lg font-bold text-gray-800">Recent Booking Requests</h2>
-                    <a href="#" class="text-xs text-amber-700 hover:text-amber-800 font-semibold">View All Bookings →</a>
+                    <span class="text-xs text-gray-500 font-medium">Verify guest payment transfers</span>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -116,7 +123,15 @@
                                     <!-- ID / Guest -->
                                     <td class="px-6 py-4">
                                         <span class="block font-semibold text-gray-900">{{ $booking['guest'] }}</span>
-                                        <span class="text-xs text-amber-700 font-medium">{{ $booking['id'] }}</span>
+                                        <span class="text-xs text-amber-700 font-medium">{{ $booking['invoice_no'] }}</span>
+                                        @if ($booking['payment_proof'])
+                                            <div class="mt-1">
+                                                <a href="{{ $booking['payment_proof'] }}" target="_blank" class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200/50 hover:bg-amber-100/70 px-2 py-0.5 rounded transition select-none">
+                                                    <span class="material-symbols-outlined text-[12px] leading-none">receipt_long</span>
+                                                    <span>View Proof</span>
+                                                </a>
+                                            </div>
+                                        @endif
                                     </td>
                                     <!-- Room -->
                                     <td class="px-6 py-4 font-medium text-gray-700">{{ $booking['room'] }}</td>
@@ -128,6 +143,8 @@
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">Confirmed</span>
                                         @elseif ($booking['status'] === 'completed')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">Completed</span>
+                                        @elseif ($booking['status'] === 'rejected')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">Rejected</span>
                                         @else
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">Pending</span>
                                         @endif
@@ -142,10 +159,23 @@
                                     </td>
                                     <!-- Actions -->
                                     <td class="px-6 py-4 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <button onclick="alert('Updating booking status is available in custom controllers')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 p-1.5 rounded-md transition text-xs font-bold" title="Edit / Process">
-                                                Process
-                                            </button>
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            @if ($booking['status'] === 'pending')
+                                                <form action="{{ route('admin.bookings.approve', $booking['id']) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-white rounded-lg shadow transition hover:scale-105 cursor-pointer select-none" title="Approve" style="background-color: #10b981; border: 1px solid #059669; width: 32px; height: 32px; display: inline-flex; justify-content: center; align-items: center;" onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'">
+                                                        <span class="material-symbols-outlined text-lg font-bold leading-none" style="color: #ffffff;">check</span>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('admin.bookings.reject', $booking['id']) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-white rounded-lg shadow transition hover:scale-105 cursor-pointer select-none" title="Reject" style="background-color: #f43f5e; border: 1px solid #e11d48; width: 32px; height: 32px; display: inline-flex; justify-content: center; align-items: center;" onmouseover="this.style.backgroundColor='#e11d48'" onmouseout="this.style.backgroundColor='#f43f5e'">
+                                                        <span class="material-symbols-outlined text-lg font-bold leading-none" style="color: #ffffff;">close</span>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="text-xs text-gray-400 italic font-medium">Processed</span>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
