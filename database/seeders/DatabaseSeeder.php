@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder
         $rooms = [
             [
                 'name' => 'Family Suite 1',
-                'type' => 'Family Suite',
+                'type' => 'Deluxe Double Room',
                 'price' => 910000,
                 'capacity' => 4,
                 'description' => 'Perfect for families with stunning mountain views, 1 King + 2 other beds, and modern amenities.',
@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Family Suite 2',
-                'type' => 'Family Suite',
+                'type' => 'Deluxe Double Room',
                 'price' => 1040000,
                 'capacity' => 4,
                 'description' => 'Spacious family accommodation with separate living area, 1 King + 2 other beds.',
@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Suite 3',
-                'type' => 'Suite',
+                'type' => 'Superior King Room',
                 'price' => 1200000,
                 'capacity' => 2,
                 'description' => 'Luxurious suite with premium furnishings, 1 King bed, and valley views.',
@@ -71,7 +71,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Suite 4',
-                'type' => 'Suite',
+                'type' => 'Superior King Room',
                 'price' => 910000,
                 'capacity' => 2,
                 'description' => 'Comfortable suite ideal for couples and honeymooners, 1 King bed.',
@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Suite 5',
-                'type' => 'Suite',
+                'type' => 'Superior King Room',
                 'price' => 1040000,
                 'capacity' => 2,
                 'description' => 'Modern suite with elegant design, 1 King bed, and mountain vistas.',
@@ -87,7 +87,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Potato Room 1',
-                'type' => 'Budget',
+                'type' => 'Standard Double Room',
                 'price' => 650000,
                 'capacity' => 2,
                 'description' => 'Cozy shared bathroom room with valley views and 1 Queen bed.',
@@ -95,7 +95,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Potato Room 2',
-                'type' => 'Budget',
+                'type' => 'Budget Double Room',
                 'price' => 650000,
                 'capacity' => 2,
                 'description' => 'Budget-friendly accommodation with shared facilities and 1 Queen bed.',
@@ -103,7 +103,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Potato Room 3',
-                'type' => 'Budget',
+                'type' => 'Budget Double Room',
                 'price' => 650000,
                 'capacity' => 2,
                 'description' => 'Intimate room perfect for budget travelers with 1 Queen bed.',

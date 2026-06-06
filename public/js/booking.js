@@ -4,6 +4,36 @@
  * to avoid HTML-parser / JS-string conflicts in inline scripts.
  */
 
+// ── Custom Alert Modal overrides ─────────────────────────────
+window.showAlert = function(message, title = 'Sistem Reservasi') {
+    var modal = document.getElementById('custom-alert-modal');
+    var msgEl = document.getElementById('custom-alert-message');
+    var titleEl = document.getElementById('custom-alert-title');
+    if (modal && msgEl) {
+        msgEl.textContent = message;
+        if (titleEl) titleEl.textContent = title;
+        modal.classList.remove('hidden');
+    } else {
+        // Fallback to native alert if DOM is not ready
+        window._nativeAlert ? window._nativeAlert(message) : alert(message);
+    }
+};
+
+window.closeCustomAlert = function() {
+    var modal = document.getElementById('custom-alert-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+};
+
+// Store original alert and override
+if (!window._nativeAlert) {
+    window._nativeAlert = window.alert;
+    window.alert = function(message) {
+        window.showAlert(message);
+    };
+}
+
 // ── State ──────────────────────────────────────────────────
 let selectedRoom = null;
 let nights = 0;
@@ -533,6 +563,11 @@ function handleFileSelect(e) {
 }
 
 function submitBooking() {
+    if (window.userRole === 'admin') {
+        alert('You cannot perform checkout because you are logged in as an admin.');
+        return;
+    }
+
     var fileInput = document.getElementById('payment-proof-input');
     if (!fileInput || !fileInput.files[0]) {
         alert('Please upload your payment transfer receipt first!');
@@ -705,6 +740,11 @@ function printReceipt() {
 // ── Booking Form Submission ────────────────────────────────
 function handleBookingSubmit(e) {
     e.preventDefault();
+
+    if (window.userRole === 'admin') {
+        alert('You cannot perform checkout because you are logged in as an admin.');
+        return;
+    }
 
     if (!selectedRoom) {
         alert('Please select a room before completing reservation!');

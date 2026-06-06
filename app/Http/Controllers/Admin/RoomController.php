@@ -36,7 +36,7 @@ class RoomController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'string', 'in:Standard Double Room,Deluxe Double Room,Budget Double Room,Superior King Room'],
             'price' => ['required', 'numeric', 'min:0'],
             'capacity' => ['required', 'integer', 'min:1'],
             'description' => ['nullable', 'string'],
@@ -83,7 +83,7 @@ class RoomController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'string', 'in:Standard Double Room,Deluxe Double Room,Budget Double Room,Superior King Room'],
             'price' => ['required', 'numeric', 'min:0'],
             'capacity' => ['required', 'integer', 'min:1'],
             'description' => ['nullable', 'string'],

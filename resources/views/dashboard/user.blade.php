@@ -40,6 +40,22 @@
 
     <!-- Main Dashboard Body -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+        @if (session('success'))
+            <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-4 text-sm font-semibold flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-600 text-base">check_circle</span>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+        @if ($errors->any())
+            <div class="mb-6 bg-rose-50 border border-rose-200 text-rose-850 rounded-xl p-4 text-sm font-semibold flex flex-col gap-1">
+                @foreach ($errors->all() as $error)
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-rose-650 text-base">error</span>
+                        <span>{{ $error }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @endif
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             <!-- Left Side: Profile Summary Card -->
@@ -74,78 +90,185 @@
 
             <!-- Right Side: Booking History -->
             <div class="lg:col-span-2 space-y-6">
-                <!-- Bookings Card -->
+                <!-- Bookings & Complaints Card -->
                 <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-                    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
-                        <h2 class="text-lg font-bold text-gray-800">Your Booking History</h2>
-                        <span class="text-xs text-gray-500 font-medium">Showing recent activity</span>
+                    <!-- Tab Headers -->
+                    <div class="flex border-b border-gray-100 bg-gray-50">
+                        <button type="button" id="tab-bookings-btn" onclick="switchTab('bookings')" class="flex-1 py-4 px-6 text-sm font-bold text-center border-b-2 border-amber-600 text-amber-700 focus:outline-none transition cursor-pointer select-none">
+                            Booking History
+                        </button>
+                        <button type="button" id="tab-complaints-btn" onclick="switchTab('complaints')" class="flex-1 py-4 px-6 text-sm font-semibold text-center border-b-2 border-transparent text-gray-500 hover:text-amber-700 hover:border-amber-500 focus:outline-none transition cursor-pointer select-none">
+                            Complaints & Feedback
+                        </button>
                     </div>
                     
-                    @if (count($mockBookings) > 0)
-                        <div class="divide-y divide-gray-100">
-                            @foreach ($mockBookings as $booking)
-                                <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:bg-gray-50 transition">
-                                    <div class="space-y-1">
-                                        <div class="flex items-center gap-3">
-                                            <span class="text-sm font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-100">
-                                                {{ $booking['id'] }}
-                                            </span>
-                                            <h4 class="font-bold text-gray-900">{{ $booking['room_name'] }}</h4>
-                                        </div>
-                                        <div class="flex gap-4 text-xs text-gray-500 pt-1">
-                                            <span>Check In: <strong class="text-gray-700">{{ date('d M Y', strtotime($booking['check_in'])) }}</strong></span>
-                                            <span>Check Out: <strong class="text-gray-700">{{ date('d M Y', strtotime($booking['check_out'])) }}</strong></span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex items-center justify-between md:justify-end gap-4 sm:gap-6">
-                                        <div class="text-right">
-                                            <span class="block text-xs text-gray-400">Total Price</span>
-                                            <span class="font-bold text-gray-900">RP{{ number_format($booking['price'], 0, ',', '.') }}</span>
-                                        </div>
-                                        <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-                                            <div>
-                                                @if ($booking['status'] === 'confirmed')
-                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                                        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> Confirmed
-                                                    </span>
-                                                @elseif ($booking['status'] === 'completed')
-                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                                                        <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span> Completed
-                                                    </span>
-                                                @elseif ($booking['status'] === 'rejected')
-                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-800 border border-rose-200">
-                                                        <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Rejected
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-                                                        <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span> Pending
-                                                    </span>
-                                                @endif
+                    <!-- Tab Content: Bookings -->
+                    <div id="tab-bookings-content" class="block">
+                        @if (count($mockBookings) > 0)
+                            <div class="divide-y divide-gray-100">
+                                @foreach ($mockBookings as $booking)
+                                    <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:bg-gray-50 transition">
+                                        <div class="space-y-1">
+                                            <div class="flex items-center gap-3">
+                                                <span class="text-sm font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-100">
+                                                    {{ $booking['id'] }}
+                                                </span>
+                                                <h4 class="font-bold text-gray-900">{{ $booking['room_name'] }}</h4>
                                             </div>
+                                            <div class="flex gap-4 text-xs text-gray-500 pt-1">
+                                                <span>Check In: <strong class="text-gray-700">{{ date('d M Y', strtotime($booking['check_in'])) }}</strong></span>
+                                                <span>Check Out: <strong class="text-gray-700">{{ date('d M Y', strtotime($booking['check_out'])) }}</strong></span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between md:justify-end gap-4 sm:gap-6">
+                                            <div class="text-right">
+                                                <span class="block text-xs text-gray-400">Total Price</span>
+                                                <span class="font-bold text-gray-900">RP{{ number_format($booking['price'], 0, ',', '.') }}</span>
+                                            </div>
+                                            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+                                                <div>
+                                                    @if ($booking['status'] === 'confirmed')
+                                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                                            <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> Confirmed
+                                                        </span>
+                                                    @elseif ($booking['status'] === 'completed')
+                                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                                            <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span> Completed
+                                                        </span>
+                                                    @elseif ($booking['status'] === 'rejected')
+                                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-800 border border-rose-200">
+                                                            <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Rejected
+                                                        </span>
+                                                    @else
+                                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                                            <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span> Pending
+                                                        </span>
+                                                    @endif
+                                                </div>
 
-                                            <button type="button" 
-                                                    onclick="showReceiptModal({{ json_encode($booking) }})"
-                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition cursor-pointer select-none">
-                                                <span class="material-symbols-outlined text-[14px] font-bold">receipt_long</span>
-                                                <span>Receipt</span>
-                                            </button>
+                                                <button type="button" 
+                                                        onclick="showReceiptModal({{ json_encode($booking) }})"
+                                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition cursor-pointer select-none">
+                                                    <span class="material-symbols-outlined text-[14px] font-bold">receipt_long</span>
+                                                    <span>Receipt</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="p-12 text-center">
+                                <span class="material-symbols-outlined text-gray-400 text-5xl">inbox</span>
+                                <h3 class="text-lg font-semibold text-gray-700 mt-4">No reservations yet</h3>
+                                <p class="text-gray-500 text-sm mt-1 mb-6">You haven't made any room reservations with us yet.</p>
+                                <a href="{{ route('booking') }}" class="inline-block bg-amber-700 hover:bg-amber-800 text-white px-6 py-2.5 rounded-lg font-semibold transition">
+                                    Start Booking
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Tab Content: Complaints -->
+                    <div id="tab-complaints-content" class="hidden p-6 space-y-8">
+                        <!-- Submit Complaint Form -->
+                        <div class="bg-gray-50 rounded-xl p-5 border border-gray-100">
+                            <h3 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-amber-700">report_problem</span>
+                                Submit New Complaint or Feedback
+                            </h3>
+                            
+                            <form action="{{ route('complaints.store') }}" method="POST" class="space-y-4">
+                                @csrf
+                                <div>
+                                    <label for="booking_id" class="block text-xs font-bold text-gray-600 uppercase mb-1">Related Booking (Optional)</label>
+                                    <select name="booking_id" id="booking_id" class="w-full bg-white rounded-lg border border-gray-200 py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/25 focus:border-amber-600 transition">
+                                        <option value="">-- Not Related to a Specific Booking --</option>
+                                        @foreach ($mockBookings as $booking)
+                                            <option value="{{ $booking['db_id'] }}">{{ $booking['room_name'] }} ({{ $booking['invoice_no'] }} &bull; Check-in: {{ date('d M Y', strtotime($booking['check_in'])) }})</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                            @endforeach
+                                
+                                <div>
+                                    <label for="subject" class="block text-xs font-bold text-gray-600 uppercase mb-1">Subject</label>
+                                    <input type="text" name="subject" id="subject" required placeholder="e.g. Broken AC, Missing towels, Refund query..." class="w-full bg-white rounded-lg border border-gray-200 py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/25 focus:border-amber-600 transition">
+                                </div>
+                                
+                                <div>
+                                    <label for="description" class="block text-xs font-bold text-gray-600 uppercase mb-1">Detailed Description</label>
+                                    <textarea name="description" id="description" rows="4" required placeholder="Please describe the issue in detail so our staff can assist you." class="w-full bg-white rounded-lg border border-gray-200 py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/25 focus:border-amber-600 transition"></textarea>
+                                </div>
+                                
+                                <button type="submit" class="bg-amber-700 hover:bg-amber-800 text-white font-semibold py-2.5 px-5 rounded-lg text-sm transition shadow-sm w-full md:w-auto">
+                                    Submit Ticket
+                                </button>
+                            </form>
                         </div>
-                    @else
-                        <div class="p-12 text-center">
-                            <span class="material-symbols-outlined text-gray-400 text-5xl">inbox</span>
-                            <h3 class="text-lg font-semibold text-gray-700 mt-4">No reservations yet</h3>
-                            <p class="text-gray-500 text-sm mt-1 mb-6">You haven't made any room reservations with us yet.</p>
-                            <a href="{{ route('booking') }}" class="inline-block bg-amber-700 hover:bg-amber-800 text-white px-6 py-2.5 rounded-lg font-semibold transition">
-                                Start Booking
-                            </a>
+
+                        <!-- Complaints History -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-bold text-gray-800">Your Support Tickets</h3>
+                            
+                            @if (count($complaints) > 0)
+                                <div class="overflow-x-auto border border-gray-150 rounded-xl">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="bg-gray-50 border-b border-gray-150 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                                <th class="py-3 px-4">Date</th>
+                                                <th class="py-3 px-4">Subject</th>
+                                                <th class="py-3 px-4">Booking</th>
+                                                <th class="py-3 px-4">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 text-sm">
+                                            @foreach ($complaints as $complaint)
+                                                <tr class="hover:bg-gray-50/50">
+                                                    <td class="py-3 px-4 font-medium text-gray-550 whitespace-nowrap">
+                                                        {{ $complaint->created_at->format('d M Y') }}
+                                                    </td>
+                                                    <td class="py-3 px-4">
+                                                        <div class="font-bold text-gray-900">{{ $complaint->subject }}</div>
+                                                        <p class="text-xs text-gray-550 mt-1 max-w-md">{{ $complaint->description }}</p>
+                                                        
+                                                        @if ($complaint->resolution)
+                                                            <div class="mt-2.5 p-3.5 bg-green-50 border border-green-100 rounded-lg text-xs">
+                                                                <span class="font-bold text-green-800 block mb-0.5">Staff Resolution:</span>
+                                                                <span class="text-green-700 font-medium">{{ $complaint->resolution }}</span>
+                                                            </div>
+                                                        @endif
+                                                    </td>
+                                                    <td class="py-3 px-4 text-xs font-semibold text-gray-600 whitespace-nowrap">
+                                                        {{ $complaint->booking ? $complaint->booking->invoice_no : 'N/A' }}
+                                                    </td>
+                                                    <td class="py-3 px-4 whitespace-nowrap">
+                                                        @if ($complaint->status === 'resolved')
+                                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-150 text-green-800 border border-green-200">
+                                                                Resolved
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-150 text-yellow-800 border border-yellow-250">
+                                                                Pending
+                                                            </span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="text-center py-8 bg-gray-50 rounded-xl border border-gray-100">
+                                    <span class="material-symbols-outlined text-gray-400 text-4xl">confirmation_number</span>
+                                    <h4 class="text-xs font-semibold text-gray-700 mt-2">No support tickets</h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">You haven't filed any complaints or feedback yet.</p>
+                                </div>
+                            @endif
                         </div>
-                    @endif
+                    </div>
                 </div>
+
 
                 <!-- Support Box -->
                 <div class="bg-gradient-to-br from-amber-600 to-amber-800 rounded-xl p-6 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
@@ -456,6 +579,35 @@
                 alert('Failed to generate receipt image. Error: ' + err.message);
             });
         }
+
+        function switchTab(tab) {
+            var bookingsBtn = document.getElementById('tab-bookings-btn');
+            var complaintsBtn = document.getElementById('tab-complaints-btn');
+            var bookingsContent = document.getElementById('tab-bookings-content');
+            var complaintsContent = document.getElementById('tab-complaints-content');
+
+            if (tab === 'bookings') {
+                bookingsBtn.className = "flex-1 py-4 px-6 text-sm font-bold text-center border-b-2 border-amber-600 text-amber-700 focus:outline-none transition cursor-pointer select-none";
+                complaintsBtn.className = "flex-1 py-4 px-6 text-sm font-semibold text-center border-b-2 border-transparent text-gray-500 hover:text-amber-700 hover:border-amber-500 focus:outline-none transition cursor-pointer select-none";
+                bookingsContent.classList.remove('hidden');
+                bookingsContent.classList.add('block');
+                complaintsContent.classList.remove('block');
+                complaintsContent.classList.add('hidden');
+            } else {
+                bookingsBtn.className = "flex-1 py-4 px-6 text-sm font-semibold text-center border-b-2 border-transparent text-gray-500 hover:text-amber-700 hover:border-amber-500 focus:outline-none transition cursor-pointer select-none";
+                complaintsBtn.className = "flex-1 py-4 px-6 text-sm font-bold text-center border-b-2 border-amber-600 text-amber-700 focus:outline-none transition cursor-pointer select-none";
+                bookingsContent.classList.remove('block');
+                bookingsContent.classList.add('hidden');
+                complaintsContent.classList.remove('hidden');
+                complaintsContent.classList.add('block');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            @if($errors->any() || (session('success') && str_contains(strtolower(session('success')), 'complaint')))
+                switchTab('complaints');
+            @endif
+        });
     </script>
 </body>
 </html>

@@ -19,7 +19,7 @@ class RoomFactory extends Factory
     {
         return [
             'name' => fake()->unique()->word().' Room',
-            'type' => fake()->randomElement(['Suite', 'Family Suite', 'Budget']),
+            'type' => fake()->randomElement(['Standard Double Room', 'Deluxe Double Room', 'Budget Double Room', 'Superior King Room']),
             'price' => fake()->randomElement([650000, 910000, 1040000, 1200000]),
             'capacity' => rand(2, 4),
             'description' => fake()->sentence(),

@@ -62,6 +62,13 @@ class BookingController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        if (Auth::user() && Auth::user()->role === 'admin') {
+            return response()->json([
+                'error' => 'You cannot perform checkout because you are logged in as an admin.',
+                'message' => 'You cannot perform checkout because you are logged in as an admin.',
+            ], 403);
+        }
+
         $request->validate([
             'room_id' => ['required', 'exists:rooms,id'],
             'guest_name' => ['required', 'string', 'max:255'],

@@ -404,6 +404,37 @@
         </div>
     </main>
 
+    <!-- Custom Alert Modal -->
+    <div id="custom-alert-modal" class="fixed inset-0 z-[100] overflow-y-auto hidden">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeCustomAlert()"></div>
+        
+        <!-- Modal Wrapper -->
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <!-- Alert Box (1x1 square layout: w-72 h-72) -->
+            <div class="relative w-72 h-72 bg-white rounded-2xl text-left shadow-2xl border border-gray-100 p-6 mx-auto my-8 flex flex-col justify-between items-center">
+                <div class="flex flex-col items-center text-center space-y-3 my-auto">
+                    <!-- Icon Container with warm amber tone -->
+                    <div class="flex items-center justify-center h-14 w-14 rounded-full bg-amber-50 text-amber-700 border border-amber-100/50 shadow-inner mb-1">
+                        <span class="material-symbols-outlined text-3xl font-bold">warning</span>
+                    </div>
+                    <!-- Title -->
+                    <h3 class="text-base font-black text-gray-900 tracking-tight" id="custom-alert-title">Reservation System</h3>
+                    <!-- Message -->
+                    <p class="text-xs text-gray-500 font-semibold leading-relaxed px-1" id="custom-alert-message">
+                        You cannot perform checkout because you are logged in as an admin.
+                    </p>
+                </div>
+                <!-- Button -->
+                <button type="button" onclick="closeCustomAlert()"
+                        class="w-full bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white py-2.5 rounded-xl font-bold text-xs tracking-wide shadow-md shadow-amber-700/20 transition duration-200 transform active:scale-95 cursor-pointer select-none">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Success Booking Confirmation Modal (Multi-Step Checkout Flow) -->
     <div id="success-modal" class="fixed inset-0 z-50 overflow-y-auto hidden">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -698,6 +729,10 @@
 
     <!-- HTML2Canvas Pro Library for Receipt Printing (supports OKLCH colors used in Tailwind v4) -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.js"></script>
+
+    <script>
+        window.userRole = "{{ auth()->user() ? auth()->user()->role : '' }}";
+    </script>
 
     <!-- Booking Interaction Logic (external to avoid HTML-parser conflicts) -->
     <script src="{{ asset('js/booking.js') }}"></script>

@@ -37,7 +37,7 @@ test('admins can store a new room with image upload', function () {
 
     $response = $this->actingAs($admin)->post(route('admin.rooms.store'), [
         'name' => 'Presidents Villa',
-        'type' => 'Villa',
+        'type' => 'Superior King Room',
         'price' => 2500000,
         'capacity' => 6,
         'description' => 'A grand villa with valley views.',
@@ -68,7 +68,7 @@ test('admins can edit and update room details', function () {
     $admin = User::factory()->create(['role' => 'admin']);
     $room = Room::create([
         'name' => 'Standard Cabin',
-        'type' => 'Standard',
+        'type' => 'Standard Double Room',
         'price' => 500000,
         'capacity' => 2,
         'description' => 'Cozy cabin.',
@@ -80,7 +80,7 @@ test('admins can edit and update room details', function () {
 
     $response = $this->actingAs($admin)->put(route('admin.rooms.update', $room), [
         'name' => 'Standard Cabin Updated',
-        'type' => 'Standard',
+        'type' => 'Standard Double Room',
         'price' => 550000,
         'capacity' => 2,
         'description' => 'Updated cozy cabin.',
@@ -110,7 +110,7 @@ test('admins can delete a room', function () {
 
     $room = Room::create([
         'name' => 'Room to Delete',
-        'type' => 'Standard',
+        'type' => 'Standard Double Room',
         'price' => 400000,
         'capacity' => 2,
         'status' => 'tersedia',

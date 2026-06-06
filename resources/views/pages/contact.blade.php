@@ -65,9 +65,9 @@
                                 <div>
                                     <h3 class="font-bold mb-2">Address</h3>
                                     <p class="text-gray-600">
-                                        Jalan Bukit Payang No.88<br>
-                                        Desa Batur Tengah<br>
-                                        Kintamani, Bali 80652<br>
+                                        Jl. Majapahit Gg. Muria<br>
+                                        Kuta, Kec. Kuta<br>
+                                        Kabupaten Badung, Bali 80361<br>
                                         Indonesia
                                     </p>
                                 </div>
@@ -78,8 +78,7 @@
                                 <div>
                                     <h3 class="font-bold mb-2">Phone</h3>
                                     <p class="text-gray-600">
-                                        <a href="tel:+6236109088221" class="hover:text-amber-700">+62 361-9088-221</a><br>
-                                        <a href="tel:+6282169911168" class="hover:text-amber-700">+62 821-6991-1168</a>
+                                        <a href="tel:+6281916166616" class="hover:text-amber-700">+62 819-1616-6616</a>
                                     </p>
                                 </div>
                             </div>
@@ -89,7 +88,7 @@
                                 <div>
                                     <h3 class="font-bold mb-2">Email</h3>
                                     <p class="text-gray-600">
-                                        <a href="mailto:info@bagusguesthouse.com" class="hover:text-amber-700">info@bagusguesthouse.com</a>
+                                        <a href="mailto:bagusguesthouse01@gmail.com" class="hover:text-amber-700">bagusguesthouse01@gmail.com</a>
                                     </p>
                                 </div>
                             </div>
@@ -100,7 +99,7 @@
                                     <h3 class="font-bold mb-2">Working Hours</h3>
                                     <p class="text-gray-600">
                                         Monday - Sunday<br>
-                                        07:00 - 22:00 WIB<br>
+                                        07:00 - 22:00 WITA<br>
                                         Available 24/7 for bookings
                                     </p>
                                 </div>
@@ -112,7 +111,7 @@
                     <div class="bg-amber-50 rounded-lg p-8">
                         <h3 class="font-bold mb-4">Quick Contact Options</h3>
                         <div class="space-y-3">
-                            <a href="https://wa.me/6282169911168" target="_blank" class="block bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg text-center font-semibold transition">
+                            <a href="https://wa.me/6281916166616" target="_blank" class="block bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg text-center font-semibold transition">
                                 Chat on WhatsApp
                             </a>
                             <a href="https://facebook.com/bagusguesthouse" target="_blank" class="block bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg text-center font-semibold transition">
@@ -132,11 +131,18 @@
     <section class="py-16 md:py-24 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold mb-8 text-center">Our Location</h2>
-            <div class="w-full h-96 bg-gradient-to-br from-gray-300 to-gray-400 rounded-lg flex items-center justify-center">
-                <span class="text-gray-600">📍 Google Map Integration Coming Soon</span>
+            <div class="w-full h-96 rounded-xl overflow-hidden shadow-md border border-gray-200">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3943.8967912440316!2d115.17474297451246!3d-8.712592888802875!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd24761c389c3b7%3A0x153ba8a02256a908!2sBagus%20Guest%20House!5e0!3m2!1sen!2sid!4v1717650000000!5m2!1sen!2sid" 
+                        width="100%" 
+                        height="100%" 
+                        style="border:0;" 
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
             </div>
             <div class="text-center mt-4">
-                <a href="https://maps.app.goo.gl/Nn5N41gLRi2CPnnz6" target="_blank" class="text-amber-700 hover:text-amber-800 font-semibold">
+                <a href="https://maps.app.goo.gl/s1uf4jKDqPyzXSWp9" target="_blank" class="text-amber-700 hover:text-amber-800 font-semibold">
                     Open in Google Maps
                 </a>
             </div>

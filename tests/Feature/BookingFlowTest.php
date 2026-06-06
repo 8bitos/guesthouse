@@ -1,10 +1,12 @@
 <?php
 
+use App\Mail\BookingApproved;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 uses(LazilyRefreshDatabase::class);
@@ -57,13 +59,16 @@ test('authenticated pelanggan can submit a booking request with payment proof', 
     Storage::disk('public')->assertExists($booking->payment_proof);
 });
 
-test('admin can approve a pending booking', function () {
+test('admin can approve a pending booking and send an email to the guest', function () {
+    Mail::fake();
+
     $admin = User::factory()->create([
         'role' => 'admin',
     ]);
 
     $booking = Booking::factory()->create([
         'status' => 'pending',
+        'guest_email' => 'guest@example.com',
     ]);
 
     $response = $this->actingAs($admin)->post("/admin/bookings/{$booking->id}/approve");
@@ -73,6 +78,11 @@ test('admin can approve a pending booking', function () {
         'id' => $booking->id,
         'status' => 'confirmed',
     ]);
+
+    Mail::assertSent(BookingApproved::class, function ($mail) use ($booking) {
+        return $mail->hasTo($booking->guest_email) &&
+               $mail->booking->id === $booking->id;
+    });
 });
 
 test('admin can reject a pending booking', function () {
@@ -144,5 +154,45 @@ test('authenticated pelanggan can submit a booking request with extras', functio
         'include_breakfast' => true,
         'include_extra_bed' => true,
         'late_checkout' => true,
+    ]);
+});
+
+test('admin can access booking page but cannot complete checkout', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+    ]);
+
+    $response = $this->actingAs($admin)->get('/booking');
+    $response->assertStatus(200);
+
+    // Try to checkout
+    Storage::fake('public');
+    $room = Room::factory()->create([
+        'status' => 'tersedia',
+        'price' => 1000000,
+    ]);
+    $file = UploadedFile::fake()->image('payment_receipt.jpg');
+
+    $responseCheckout = $this->actingAs($admin)->post('/booking', [
+        'room_id' => $room->id,
+        'guest_name' => 'Admin Guest',
+        'guest_email' => 'admin@example.com',
+        'guest_phone' => '081234567890',
+        'guest_country' => 'Indonesia',
+        'check_in' => now()->format('Y-m-d'),
+        'check_out' => now()->addDay()->format('Y-m-d'),
+        'nights' => 1,
+        'adults' => 2,
+        'children' => 0,
+        'subtotal' => 1000000,
+        'discount' => 0,
+        'tax' => 100000,
+        'total_price' => 1100000,
+        'payment_proof' => $file,
+    ]);
+
+    $responseCheckout->assertStatus(403);
+    $responseCheckout->assertJson([
+        'error' => 'You cannot perform checkout because you are logged in as an admin.',
     ]);
 });

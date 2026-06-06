@@ -62,12 +62,10 @@
                         <select id="type" name="type" required
                                 class="w-full bg-transparent border-b-2 border-gray-200 focus:border-blue-500 focus:outline-none py-2 text-gray-700 transition">
                             <option value="" disabled {{ old('type') ? '' : 'selected' }}>Select Room Type</option>
-                            <option value="Standard Room" {{ old('type') === 'Standard Room' ? 'selected' : '' }}>Standard Room</option>
-                            <option value="Deluxe Room" {{ old('type') === 'Deluxe Room' ? 'selected' : '' }}>Deluxe Room</option>
-                            <option value="Twin Room" {{ old('type') === 'Twin Room' ? 'selected' : '' }}>Twin Room</option>
-                            <option value="Suite" {{ old('type') === 'Suite' ? 'selected' : '' }}>Suite</option>
-                            <option value="Family Room" {{ old('type') === 'Family Room' ? 'selected' : '' }}>Family Room</option>
-                            <option value="Villa" {{ old('type') === 'Villa' ? 'selected' : '' }}>Villa</option>
+                            <option value="Standard Double Room" {{ old('type') === 'Standard Double Room' ? 'selected' : '' }}>Standard Double Room</option>
+                            <option value="Deluxe Double Room" {{ old('type') === 'Deluxe Double Room' ? 'selected' : '' }}>Deluxe Double Room</option>
+                            <option value="Budget Double Room" {{ old('type') === 'Budget Double Room' ? 'selected' : '' }}>Budget Double Room</option>
+                            <option value="Superior King Room" {{ old('type') === 'Superior King Room' ? 'selected' : '' }}>Superior King Room</option>
                         </select>
                     </div>
 
