@@ -316,6 +316,10 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+    // Profile Routes (accessible by all authenticated users)
+    Route::get('/profile', [DashboardController::class, 'showProfile'])->name('profile.edit');
+    Route::post('/profile', [DashboardController::class, 'updateProfile'])->name('profile.update');
+
     // Booking Routes (accessible by both pelanggan and admin)
     Route::get('/booking', [BookingController::class, 'index'])->name('booking');
     Route::get('/booking/check-availability', [BookingController::class, 'checkAvailability'])->name('booking.check-availability');

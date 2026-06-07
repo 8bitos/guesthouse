@@ -220,6 +220,7 @@
                                                 <th class="py-3 px-4">Subject</th>
                                                 <th class="py-3 px-4">Booking</th>
                                                 <th class="py-3 px-4">Status</th>
+                                                <th class="py-3 px-4 text-right">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100 text-sm">
@@ -230,14 +231,7 @@
                                                     </td>
                                                     <td class="py-3 px-4">
                                                         <div class="font-bold text-gray-900">{{ $complaint->subject }}</div>
-                                                        <p class="text-xs text-gray-550 mt-1 max-w-md">{{ $complaint->description }}</p>
-                                                        
-                                                        @if ($complaint->resolution)
-                                                            <div class="mt-2.5 p-3.5 bg-green-50 border border-green-100 rounded-lg text-xs">
-                                                                <span class="font-bold text-green-800 block mb-0.5">Staff Resolution:</span>
-                                                                <span class="text-green-700 font-medium">{{ $complaint->resolution }}</span>
-                                                            </div>
-                                                        @endif
+                                                        <p class="text-xs text-gray-550 mt-1 max-w-md truncate">{{ $complaint->description }}</p>
                                                     </td>
                                                     <td class="py-3 px-4 text-xs font-semibold text-gray-600 whitespace-nowrap">
                                                         {{ $complaint->booking ? $complaint->booking->invoice_no : 'N/A' }}
@@ -252,6 +246,25 @@
                                                                 Pending
                                                             </span>
                                                         @endif
+                                                    </td>
+                                                    <td class="py-3 px-4 text-right whitespace-nowrap">
+                                                        @php
+                                                            $complaintData = [
+                                                                'id' => $complaint->id,
+                                                                'date' => $complaint->created_at->format('d M Y'),
+                                                                'subject' => $complaint->subject,
+                                                                'description' => $complaint->description,
+                                                                'booking_invoice' => $complaint->booking ? $complaint->booking->invoice_no : 'N/A',
+                                                                'status' => $complaint->status,
+                                                                'resolution' => $complaint->resolution
+                                                            ];
+                                                        @endphp
+                                                        <button type="button" 
+                                                                onclick="showTicketModal({{ json_encode($complaintData) }})"
+                                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition cursor-pointer select-none">
+                                                            <span class="material-symbols-outlined text-[14px] font-bold">visibility</span>
+                                                            <span>View Details</span>
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -435,6 +448,64 @@
         </div>
     </div>
 
+    <!-- Ticket Modal -->
+    <div id="ticket-modal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/55 backdrop-blur-sm transition-opacity" onclick="closeTicketModal()"></div>
+        
+        <!-- Modal Wrapper -->
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0 animate-fade-in-up">
+            <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-gray-100 p-6 space-y-6">
+                <!-- Close Button -->
+                <button type="button" onclick="closeTicketModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition cursor-pointer">
+                    <span class="material-symbols-outlined font-bold text-xl">close</span>
+                </button>
+
+                <div class="text-center space-y-2">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-50 text-amber-800 mb-2">
+                        <span class="material-symbols-outlined text-3xl font-bold">confirmation_number</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900" id="ticket-modal-title">Ticket Details</h3>
+                    <p class="text-xs text-gray-500 font-medium" id="ticket-modal-date">Submitted on -</p>
+                </div>
+
+                <div class="space-y-4 text-left">
+                    <!-- Related Booking -->
+                    <div>
+                        <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Related Booking</span>
+                        <span class="text-xs font-bold text-gray-800 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-150 inline-block mt-1" id="ticket-modal-booking">-</span>
+                    </div>
+
+                    <!-- Status -->
+                    <div>
+                        <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</span>
+                        <div id="ticket-modal-status" class="mt-1"></div>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Your Complaint/Feedback</span>
+                        <p class="text-xs text-gray-700 mt-1 bg-gray-50 p-3.5 rounded-lg border border-gray-150 leading-relaxed font-semibold" id="ticket-modal-description">-</p>
+                    </div>
+
+                    <!-- Staff Resolution -->
+                    <div id="ticket-modal-resolution-section">
+                        <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Staff Resolution</span>
+                        <p class="text-xs mt-1 p-3.5 rounded-lg border leading-relaxed font-semibold" id="ticket-modal-resolution">-</p>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="pt-2">
+                    <button type="button" onclick="closeTicketModal()"
+                            class="w-full bg-gray-900 hover:bg-gray-850 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide shadow-md transition cursor-pointer select-none">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- HTML2Canvas Pro Library for Receipt Printing (supports OKLCH colors used in Tailwind v4) -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.js"></script>
 
@@ -578,6 +649,43 @@
                 console.error('Error generating receipt image:', err);
                 alert('Failed to generate receipt image. Error: ' + err.message);
             });
+        }
+
+        function showTicketModal(ticket) {
+            document.getElementById('ticket-modal-title').textContent = ticket.subject;
+            document.getElementById('ticket-modal-date').textContent = 'Submitted on ' + ticket.date;
+            document.getElementById('ticket-modal-booking').textContent = ticket.booking_invoice;
+            document.getElementById('ticket-modal-description').textContent = ticket.description;
+            
+            const statusContainer = document.getElementById('ticket-modal-status');
+            const resolutionSection = document.getElementById('ticket-modal-resolution-section');
+            const resolutionText = document.getElementById('ticket-modal-resolution');
+            
+            if (ticket.status === 'resolved') {
+                statusContainer.innerHTML = `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> Resolved
+                    </span>
+                `;
+                resolutionSection.classList.remove('hidden');
+                resolutionText.textContent = ticket.resolution || 'No resolution notes provided.';
+                resolutionText.className = "text-xs mt-1 p-3.5 rounded-lg border leading-relaxed font-semibold bg-green-50 border-green-200 text-green-800";
+            } else {
+                statusContainer.innerHTML = `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-250">
+                        <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span> Pending Staff Review
+                    </span>
+                `;
+                resolutionSection.classList.remove('hidden');
+                resolutionText.textContent = 'Our support staff is currently reviewing your ticket. Thank you for your patience.';
+                resolutionText.className = "text-xs mt-1 p-3.5 rounded-lg border leading-relaxed font-semibold bg-yellow-50 border-yellow-200 text-yellow-800";
+            }
+            
+            document.getElementById('ticket-modal').classList.remove('hidden');
+        }
+
+        function closeTicketModal() {
+            document.getElementById('ticket-modal').classList.add('hidden');
         }
 
         function switchTab(tab) {

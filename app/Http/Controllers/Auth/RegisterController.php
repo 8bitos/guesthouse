@@ -30,6 +30,7 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'country_code' => ['required', 'string', 'max:10'],
             'phone' => ['nullable', 'string', 'max:20'],
             'address' => ['nullable', 'string'],
         ]);
@@ -39,7 +40,7 @@ class RegisterController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'pelanggan', // Default role for registering users is pelanggan
-            'phone' => $request->phone,
+            'phone' => $request->phone ? $request->country_code.ltrim($request->phone, '0') : null,
             'address' => $request->address,
         ]);
 

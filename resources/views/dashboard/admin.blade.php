@@ -165,10 +165,10 @@
                                     </div>
 
                                     <!-- Visual Line Chart representation -->
-                                    <div class="overflow-x-auto pb-4 scrollbar-thin">
+                                    <div class="pb-4">
                                         @php
                                             $N = count($monthlyTrends);
-                                            $chartWidth = max(600, $N * 80);
+                                            $chartWidth = 1000;
                                             $chartHeight = 160;
                                             $paddingX = 40;
                                             $paddingY = 20;
@@ -218,9 +218,9 @@
                                                 $bookingsAreaPath .= ' L ' . $bookingsPoints[$N-1]['x'] . ' ' . $baseline . ' Z';
                                             }
                                         @endphp
-                                        <div class="relative" style="width: {{ $chartWidth }}px; height: {{ $chartHeight + 30 }}px;">
+                                        <div class="relative w-full" style="height: {{ $chartHeight + 30 }}px;">
                                             <!-- SVG Graph -->
-                                            <svg class="absolute inset-0 pointer-events-none" width="{{ $chartWidth }}" height="{{ $chartHeight }}" viewBox="0 0 {{ $chartWidth }} {{ $chartHeight }}">
+                                            <svg class="absolute inset-0 pointer-events-none w-full h-full" viewBox="0 0 1000 160" preserveAspectRatio="none">
                                                 <defs>
                                                     <!-- Revenue Gradient -->
                                                     <linearGradient id="revenueAreaGrad" x1="0" y1="0" x2="0" y2="1">
@@ -259,19 +259,22 @@
                                             </svg>
 
                                             <!-- Interactive Hover Hotspots & Tooltips -->
-                                            <div class="absolute inset-0" style="width: {{ $chartWidth }}px; height: {{ $chartHeight }}px;">
+                                            <div class="absolute inset-0 w-full h-full">
                                                 @foreach ($monthlyTrends as $index => $trend)
                                                     @php
                                                         $pt = $bookingsPoints[$index];
                                                         $colWidth = ($N > 1) ? ($chartWidth - (2 * $paddingX)) / ($N - 1) : $chartWidth;
                                                         $left = ($N > 1) ? $pt['x'] - ($colWidth / 2) : 0;
+                                                        
+                                                        $percentLeft = ($left / $chartWidth) * 100;
+                                                        $percentColWidth = ($colWidth / $chartWidth) * 100;
                                                     @endphp
-                                                    <div class="absolute group cursor-pointer" style="left: {{ $left }}px; width: {{ $colWidth }}px; top: 0; bottom: 0;">
+                                                    <div class="absolute group cursor-pointer" style="left: {{ $percentLeft }}%; width: {{ $percentColWidth }}%; top: 0; bottom: 0;">
                                                         <!-- Vertical hover line indicator -->
                                                         <div class="absolute inset-y-0 w-px bg-gray-200 opacity-0 group-hover:opacity-100 transition pointer-events-none left-1/2 -translate-x-1/2"></div>
                                                         
                                                         <!-- Tooltip -->
-                                                        <div class="absolute bottom-full mb-3 bg-gray-900 text-white text-[10px] font-semibold py-1.5 px-2.5 rounded opacity-0 group-hover:opacity-100 transition duration-200 pointer-events-none text-center whitespace-nowrap z-10 shadow-lg leading-relaxed left-1/2 -translate-x-1/2">
+                                                        <div class="absolute top-2 bg-gray-900 text-white text-[10px] font-semibold py-1.5 px-2.5 rounded opacity-0 group-hover:opacity-100 transition duration-200 pointer-events-none text-center whitespace-nowrap z-10 shadow-lg leading-relaxed left-1/2 -translate-x-1/2">
                                                             <span class="block text-gray-300 font-bold uppercase text-[9px] mb-0.5">{{ $trend['label'] }}</span>
                                                             <span class="block text-indigo-300 font-extrabold">{{ $trend['bookings_count'] }} bookings</span>
                                                             <span class="block text-amber-400 font-extrabold">RP{{ number_format($trend['revenue'], 0, ',', '.') }}</span>
@@ -285,8 +288,9 @@
                                                 @foreach ($monthlyTrends as $index => $trend)
                                                     @php
                                                         $pt = $bookingsPoints[$index];
+                                                        $percentX = ($pt['x'] / $chartWidth) * 100;
                                                     @endphp
-                                                    <span class="absolute text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center block w-20 -ml-10" style="left: {{ $pt['x'] }}px;">
+                                                    <span class="absolute text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center block w-20 -ml-10" style="left: {{ $percentX }}%;">
                                                         {{ $trend['label'] }}
                                                     </span>
                                                 @endforeach
@@ -541,65 +545,131 @@
         <div id="content-management" class="tab-content hidden space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Left 2 Columns: Quick Controls -->
-                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200/80 p-5 space-y-3">
-                    <h3 class="font-bold text-gray-800 text-sm">Quick Guesthouse Controls</h3>
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200/80 p-5 space-y-4">
+                    <div>
+                        <h3 class="font-extrabold text-gray-900 text-sm tracking-tight">Quick Guesthouse Controls</h3>
+                        <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-0.5">Click any panel to manage resources inside a popup without leaving the dashboard</p>
+                    </div>
                     
-                    <div class="space-y-1.5">
-                        <a href="{{ route('admin.rooms.index') }}" class="w-full text-left px-3.5 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-between text-xs transition inline-block">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-gray-500 text-base leading-none">hotel</span>
-                                <span class="font-semibold text-gray-700">Manage Rooms & Villas</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Card 1: Rooms & Villas -->
+                        <div onclick="openCrudModal('{{ route('admin.rooms.index') }}', 'Manage Rooms & Villas')" class="bg-gray-50/60 hover:bg-white border border-gray-200/80 hover:border-amber-600/30 rounded-xl p-4 flex flex-col justify-between gap-4 cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
+                            <div class="space-y-2.5">
+                                <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center group-hover:bg-amber-100 transition shrink-0">
+                                    <span class="material-symbols-outlined text-xl">hotel</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-gray-900 text-xs tracking-tight">Rooms & Villas</h4>
+                                    <p class="text-[10px] text-gray-500 leading-normal">Configure guest rooms, pricing rates, details, and room availability.</p>
+                                </div>
                             </div>
-                            <span class="text-[10px] text-gray-400 font-semibold uppercase">View All {{ $stats['total_rooms'] }}</span>
-                        </a>
+                            <div class="flex items-center justify-between border-t border-gray-150/40 pt-2.5 mt-auto">
+                                <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider">Total: {{ $stats['total_rooms'] }}</span>
+                                <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded group-hover:bg-amber-100 transition">Manage &rarr;</span>
+                            </div>
+                        </div>
 
-                        <a href="{{ route('admin.cms.about') }}" class="w-full text-left px-3.5 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-between text-xs transition inline-block">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-gray-500 text-base leading-none">edit_note</span>
-                                <span class="font-semibold text-gray-700">Customize "About Us" Content</span>
+                        <!-- Card 2: About Us -->
+                        <div onclick="openCrudModal('{{ route('admin.cms.about') }}', 'Customize About Us')" class="bg-gray-50/60 hover:bg-white border border-gray-200/80 hover:border-blue-600/30 rounded-xl p-4 flex flex-col justify-between gap-4 cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
+                            <div class="space-y-2.5">
+                                <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center group-hover:bg-blue-100 transition shrink-0">
+                                    <span class="material-symbols-outlined text-xl">edit_note</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-gray-900 text-xs tracking-tight">About Us Content</h4>
+                                    <p class="text-[10px] text-gray-500 leading-normal">Update landing page descriptions, stories, contact info, and upload hero photos.</p>
+                                </div>
                             </div>
-                            <span class="text-[10px] text-gray-400 font-semibold uppercase">Manage Texts</span>
-                        </a>
+                            <div class="flex items-center justify-between border-t border-gray-150/40 pt-2.5 mt-auto">
+                                <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider">CMS Settings</span>
+                                <span class="text-[9px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded group-hover:bg-blue-100 transition">Manage &rarr;</span>
+                            </div>
+                        </div>
 
-                        <a href="{{ route('admin.cms.facilities.index') }}" class="w-full text-left px-3.5 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-between text-xs transition inline-block">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-gray-500 text-base leading-none">pool</span>
-                                <span class="font-semibold text-gray-700">Customize "Our Facilities"</span>
+                        <!-- Card 3: Facilities -->
+                        <div onclick="openCrudModal('{{ route('admin.cms.facilities.index') }}', 'Customize Our Facilities')" class="bg-gray-50/60 hover:bg-white border border-gray-200/80 hover:border-emerald-600/30 rounded-xl p-4 flex flex-col justify-between gap-4 cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
+                            <div class="space-y-2.5">
+                                <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-100 transition shrink-0">
+                                    <span class="material-symbols-outlined text-xl">pool</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-gray-900 text-xs tracking-tight">Our Facilities</h4>
+                                    <p class="text-[10px] text-gray-500 leading-normal">Add, edit, or remove guesthouse facilities, icons, and features.</p>
+                                </div>
                             </div>
-                            <span class="text-[10px] text-gray-400 font-semibold uppercase">Configure Offerings</span>
-                        </a>
+                            <div class="flex items-center justify-between border-t border-gray-150/40 pt-2.5 mt-auto">
+                                <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider">Amenities List</span>
+                                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded group-hover:bg-emerald-100 transition">Manage &rarr;</span>
+                            </div>
+                        </div>
 
-                        <a href="{{ route('admin.cms.gallery.index') }}" class="w-full text-left px-3.5 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-between text-xs transition inline-block">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-gray-500 text-base leading-none">photo_camera</span>
-                                <span class="font-semibold text-gray-700">Customize "Photo Gallery"</span>
+                        <!-- Card 4: Photo Gallery -->
+                        <div onclick="openCrudModal('{{ route('admin.cms.gallery.index') }}', 'Customize Photo Gallery')" class="bg-gray-50/60 hover:bg-white border border-gray-200/80 hover:border-orange-600/30 rounded-xl p-4 flex flex-col justify-between gap-4 cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
+                            <div class="space-y-2.5">
+                                <div class="w-10 h-10 rounded-lg bg-orange-50 text-orange-700 flex items-center justify-center group-hover:bg-orange-100 transition shrink-0">
+                                    <span class="material-symbols-outlined text-xl">photo_camera</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-gray-900 text-xs tracking-tight">Photo Gallery</h4>
+                                    <p class="text-[10px] text-gray-500 leading-normal">Upload and manage visual photos of the guesthouse property, pool, and rooms.</p>
+                                </div>
                             </div>
-                            <span class="text-[10px] text-gray-400 font-semibold uppercase">Manage Photos</span>
-                        </a>
-                        
-                        <a href="{{ route('admin.bookings.index') }}" class="w-full text-left px-3.5 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-between text-xs transition inline-block">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-gray-500 text-base leading-none">credit_card</span>
-                                <span class="font-semibold text-gray-700">Manage Reservasi & Pembayaran</span>
+                            <div class="flex items-center justify-between border-t border-gray-150/40 pt-2.5 mt-auto">
+                                <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider">CMS Media</span>
+                                <span class="text-[9px] text-orange-700 font-bold bg-orange-50 px-2 py-0.5 rounded group-hover:bg-orange-100 transition">Manage &rarr;</span>
                             </div>
-                            <span class="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded uppercase">Verify / Modify</span>
-                        </a>
-                        
-                        <a href="{{ route('admin.complaints.index') }}" class="w-full text-left px-3.5 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-between text-xs transition inline-block">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-gray-500 text-base leading-none">forum</span>
-                                <span class="font-semibold text-gray-700">Customer Complaint Logs</span>
-                            </div>
-                            <span class="text-[10px] text-gray-400 font-semibold uppercase">View Tickets</span>
-                        </a>
+                        </div>
 
-                        <a href="{{ route('admin.users.index') }}" class="w-full text-left px-3.5 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-between text-xs transition inline-block">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-gray-500 text-base leading-none">group</span>
-                                <span class="font-semibold text-gray-700">Manage Customers (Guests)</span>
+                        <!-- Card 5: Reservasi & Pembayaran -->
+                        <div onclick="openCrudModal('{{ route('admin.bookings.index') }}', 'Manage Reservasi & Pembayaran')" class="bg-gray-50/60 hover:bg-white border border-gray-200/80 hover:border-indigo-600/30 rounded-xl p-4 flex flex-col justify-between gap-4 cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
+                            <div class="space-y-2.5">
+                                <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center group-hover:bg-indigo-100 transition shrink-0">
+                                    <span class="material-symbols-outlined text-xl">credit_card</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-gray-900 text-xs tracking-tight">Reservations & Bills</h4>
+                                    <p class="text-[10px] text-gray-500 leading-normal">Track all guest reservations, manual bank payments, history, and edit details.</p>
+                                </div>
                             </div>
-                            <span class="text-[10px] text-gray-400 font-semibold uppercase">CRUD Users</span>
-                        </a>
+                            <div class="flex items-center justify-between border-t border-gray-150/40 pt-2.5 mt-auto">
+                                <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider">Full Bookings Logs</span>
+                                <span class="text-[9px] text-indigo-700 font-bold bg-indigo-50 px-2 py-0.5 rounded group-hover:bg-indigo-100 transition font-semibold">Verify / Modify</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 6: Support Tickets -->
+                        <div onclick="openCrudModal('{{ route('admin.complaints.index') }}', 'Customer Complaint Logs')" class="bg-gray-50/60 hover:bg-white border border-gray-200/80 hover:border-purple-600/30 rounded-xl p-4 flex flex-col justify-between gap-4 cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
+                            <div class="space-y-2.5">
+                                <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center group-hover:bg-purple-100 transition shrink-0">
+                                    <span class="material-symbols-outlined text-xl">forum</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-gray-900 text-xs tracking-tight">Complaints & Tickets</h4>
+                                    <p class="text-[10px] text-gray-500 leading-normal">Read customer support ticket reports and record official resolution notes.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-gray-150/40 pt-2.5 mt-auto">
+                                <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider">Support Log</span>
+                                <span class="text-[9px] text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded group-hover:bg-purple-100 transition">Manage &rarr;</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 7: Guests Accounts (Col-Span 2 on medium+ for layout balance) -->
+                        <div onclick="openCrudModal('{{ route('admin.users.index') }}', 'Manage Customers (Guests)')" class="bg-gray-50/60 hover:bg-white border border-gray-200/80 hover:border-rose-600/30 rounded-xl p-4 flex flex-col justify-between gap-4 cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group sm:col-span-2">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center group-hover:bg-rose-100 transition shrink-0">
+                                    <span class="material-symbols-outlined text-xl">group</span>
+                                </div>
+                                <div class="space-y-0.5">
+                                    <h4 class="font-bold text-gray-900 text-xs tracking-tight">Guest Accounts</h4>
+                                    <p class="text-[10px] text-gray-500 leading-normal">Manage customer accounts, search phone numbers, update details, or delete registered guest profiles.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-gray-150/40 pt-2.5 mt-1">
+                                <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider">Total Guests: {{ $stats['total_users'] }}</span>
+                                <span class="text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded group-hover:bg-rose-100 transition font-semibold">CRUD Users &rarr;</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -611,7 +681,7 @@
                     <ul class="text-[11px] space-y-1.5 text-gray-300">
                         <li class="flex justify-between">
                             <span>Database Driver:</span>
-                            <strong class="text-white font-semibold">SQLite (MySQL Local Dev)</strong>
+                            <strong class="text-white font-semibold">MySQL</strong>
                         </li>
                         <li class="flex justify-between">
                             <span>Laravel Framework:</span>
@@ -683,6 +753,110 @@
             const activeTab = localStorage.getItem('admin_dashboard_active_tab') || 'requests';
             switchTab(activeTab);
         });
+
+        // CRUD Popup Modal Handlers
+        function openCrudModal(url, title) {
+            const modal = document.getElementById('crud-modal');
+            const container = document.getElementById('crud-modal-container');
+            const iframe = document.getElementById('crud-iframe');
+            const spinner = document.getElementById('crud-iframe-spinner');
+            const titleEl = document.getElementById('crud-modal-title');
+            
+            titleEl.textContent = title;
+            iframe.src = url;
+            iframe.classList.add('opacity-0');
+            spinner.classList.remove('opacity-0', 'hidden');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeCrudModal() {
+            const modal = document.getElementById('crud-modal');
+            const container = document.getElementById('crud-modal-container');
+            const iframe = document.getElementById('crud-iframe');
+            
+            container.classList.remove('scale-100', 'opacity-100');
+            container.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                iframe.src = "";
+                window.location.reload();
+            }, 300);
+            
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function refreshCrudIframe() {
+            const iframe = document.getElementById('crud-iframe');
+            const spinner = document.getElementById('crud-iframe-spinner');
+            
+            iframe.classList.add('opacity-0');
+            spinner.classList.remove('opacity-0', 'hidden');
+            iframe.contentWindow.location.reload();
+        }
+
+        function onIframeLoaded() {
+            const iframe = document.getElementById('crud-iframe');
+            const spinner = document.getElementById('crud-iframe-spinner');
+            
+            if (iframe.src && iframe.src !== "" && iframe.src !== window.location.href) {
+                spinner.classList.add('opacity-0');
+                setTimeout(() => {
+                    spinner.classList.add('hidden');
+                }, 300);
+                iframe.classList.remove('opacity-0');
+            }
+        }
     </script>
+
+    <!-- Beautiful CRUD Modal -->
+    <div id="crud-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div onclick="closeCrudModal()" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"></div>
+        
+        <!-- Modal Container -->
+        <div class="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-6xl flex flex-col overflow-hidden transition-all duration-300 scale-95 opacity-0 transform" id="crud-modal-container" style="height: 90vh;">
+            <!-- Header -->
+            <div class="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-600 animate-pulse"></span>
+                    <h3 id="crud-modal-title" class="font-extrabold text-gray-900 text-sm tracking-tight">Manage Content</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Refresh Button -->
+                    <button onclick="refreshCrudIframe()" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition flex items-center justify-center cursor-pointer select-none" title="Refresh Panel">
+                        <span class="material-symbols-outlined text-lg">refresh</span>
+                    </button>
+                    <!-- Close Button -->
+                    <button onclick="closeCrudModal()" class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition flex items-center justify-center cursor-pointer select-none" title="Close Panel">
+                        <span class="material-symbols-outlined text-lg font-bold">close</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Iframe Area -->
+            <div class="flex-grow w-full relative bg-gray-50">
+                <!-- Loading Spinner -->
+                <div id="crud-iframe-spinner" class="absolute inset-0 flex items-center justify-center bg-gray-50 z-10 transition duration-300">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-9 h-9 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Loading panel...</span>
+                    </div>
+                </div>
+                <!-- The Iframe -->
+                <iframe id="crud-iframe" class="absolute inset-0 w-full h-full border-none opacity-0 transition-opacity duration-300" src="" onload="onIframeLoaded()"></iframe>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -62,7 +62,8 @@ test('users can register a new account', function () {
         'email' => 'newuser@example.com',
         'password' => 'Password123!',
         'password_confirmation' => 'Password123!',
-        'phone' => '+6281234567',
+        'country_code' => '+62',
+        'phone' => '81234567',
         'address' => 'Test Street',
     ]);
 

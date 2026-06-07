@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -112,20 +113,23 @@ class DashboardController extends Controller
 
         if ($trendFilter === 'today') {
             $trendsTitle = 'Occupancy & Revenue Trends (Today)';
-            $trendsColumnHeader = 'Room';
+            $trendsColumnHeader = 'Hour';
             $todayStr = today()->format('Y-m-d');
 
             $bookings = Booking::whereIn('status', ['confirmed', 'completed'])
-                ->whereDate('check_in', $todayStr)
+                ->whereDate('created_at', $todayStr)
                 ->get();
 
-            $rooms = Room::all();
-            foreach ($rooms as $room) {
-                $roomBookings = $bookings->where('room_id', $room->id);
+            for ($hour = 0; $hour < 24; $hour += 4) {
+                $startHour = sprintf('%02d:00', $hour);
+                $hourBookings = $bookings->filter(function ($b) use ($hour) {
+                    return $b->created_at->hour >= $hour && $b->created_at->hour < ($hour + 4);
+                });
+
                 $monthlyTrends[] = [
-                    'label' => $room->name,
-                    'bookings_count' => $roomBookings->count(),
-                    'revenue' => (float) $roomBookings->sum('total_price'),
+                    'label' => $startHour,
+                    'bookings_count' => $hourBookings->count(),
+                    'revenue' => (float) $hourBookings->sum('total_price'),
                 ];
             }
         } elseif ($trendFilter === '7days') {
@@ -335,5 +339,92 @@ class DashboardController extends Controller
         $booking->update(['status' => 'rejected']);
 
         return redirect()->back()->with('success', 'Booking rejected successfully.');
+    }
+
+    /**
+     * Show the user's profile settings.
+     */
+    public function showProfile(): View
+    {
+        $user = Auth::user();
+
+        // Parse phone number
+        $countryCode = '+62';
+        $phoneNumber = $user->phone;
+
+        if ($user->phone) {
+            $prefixes = [
+                '+1684', '+1264', '+1268', '+1242', '+1246', '+1441', '+1767', '+1849', '+1473', '+1671',
+                '+1876', '+1664', '+1670', '+1939', '+1869', '+1758', '+1784', '+1868', '+1649', '+1284',
+                '+1340', '+358', '+355', '+213', '+376', '+244', '+672', '+374', '+297', '+994',
+                '+973', '+880', '+375', '+501', '+229', '+975', '+591', '+387', '+267', '+246',
+                '+673', '+359', '+226', '+257', '+855', '+237', '+238', '+345', '+236', '+235',
+                '+269', '+242', '+243', '+682', '+506', '+225', '+385', '+357', '+420', '+253',
+                '+593', '+503', '+240', '+291', '+372', '+251', '+500', '+298', '+679', '+594',
+                '+689', '+241', '+220', '+995', '+233', '+350', '+299', '+590', '+502', '+224',
+                '+245', '+595', '+509', '+379', '+504', '+852', '+354', '+964', '+353', '+972',
+                '+962', '+254', '+686', '+850', '+965', '+996', '+856', '+371', '+961', '+266',
+                '+231', '+218', '+423', '+370', '+352', '+853', '+389', '+261', '+265', '+960',
+                '+223', '+356', '+692', '+596', '+222', '+230', '+262', '+691', '+373', '+377',
+                '+976', '+382', '+212', '+258', '+264', '+674', '+977', '+599', '+687', '+505',
+                '+227', '+234', '+683', '+968', '+680', '+970', '+507', '+675', '+872', '+351',
+                '+974', '+250', '+290', '+508', '+685', '+378', '+239', '+966', '+221', '+381',
+                '+248', '+232', '+421', '+386', '+677', '+252', '+211', '+249', '+597', '+268',
+                '+963', '+886', '+992', '+255', '+670', '+228', '+690', '+676', '+216', '+993',
+                '+688', '+256', '+380', '+971', '+598', '+998', '+678', '+681', '+967', '+260',
+                '+263', '+93', '+54', '+61', '+43', '+32', '+55', '+56', '+86', '+57',
+                '+53', '+45', '+20', '+33', '+49', '+30', '+44', '+36', '+91', '+62',
+                '+98', '+39', '+81', '+77', '+82', '+60', '+52', '+95', '+31', '+64',
+                '+47', '+92', '+51', '+63', '+48', '+40', '+65', '+27', '+34', '+94',
+                '+46', '+41', '+66', '+90', '+58', '+84', '+1', '+7',
+            ];
+            foreach ($prefixes as $prefix) {
+                if (str_starts_with($user->phone, $prefix)) {
+                    $countryCode = $prefix;
+                    $phoneNumber = substr($user->phone, strlen($prefix));
+                    break;
+                }
+            }
+        }
+
+        return view('pages.profile', compact('user', 'countryCode', 'phoneNumber'));
+    }
+
+    /**
+     * Update the user's profile settings.
+     */
+    public function updateProfile(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'country_code' => ['required', 'string', 'max:10'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'address' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $userData = [
+            'name' => $request->name,
+            'phone' => $request->phone ? $request->country_code.ltrim($request->phone, '0') : null,
+            'address' => $request->address,
+        ];
+
+        if ($request->filled('password')) {
+            $request->validate([
+                'current_password' => ['required', 'string'],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+            ]);
+
+            if (! Hash::check($request->current_password, $user->password)) {
+                return redirect()->back()->withErrors(['current_password' => 'The provided current password does not match your record.']);
+            }
+
+            $userData['password'] = Hash::make($request->password);
+        }
+
+        $user->update($userData);
+
+        return redirect()->back()->with('success', 'Profile settings updated successfully.');
     }
 }
