@@ -36,10 +36,10 @@ Bagus Guest House adalah aplikasi berbasis web modern yang dirancang untuk menge
 ## Kebutuhan Sistem (Requirements)
 
 Sebelum memulai instalasi, pastikan komputer Anda telah terpasang:
-* **PHP >= 8.3** (lengkap dengan ekstensi PHP umum seperti `openssl`, `pdo`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`)
-* **Composer** (Dependency manager untuk PHP)
-* **Node.js & NPM** (Untuk kompilasi frontend Vite & Tailwind CSS)
-* **MySQL Database Server** (atau gunakan SQLite jika hanya untuk development cepat)
+* **[PHP >= 8.3](https://windows.php.net/download/)** atau bundle development tool seperti **[Laragon](https://laragon.org/)** / **[XAMPP](https://www.apachefriends.org/)** (lengkap dengan ekstensi PHP umum seperti `openssl`, `pdo`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`)
+* **[Composer](https://getcomposer.org/)** (Dependency manager untuk PHP)
+* **[Node.js & NPM](https://nodejs.org/)** (Untuk kompilasi frontend Vite & Tailwind CSS)
+* **[MySQL Database Server](https://dev.mysql.com/downloads/installer/)** (atau bisa juga menggunakan bundle database bawaan **[Laragon](https://laragon.org/)** / **[XAMPP](https://www.apachefriends.org/)**, atau SQLite jika hanya untuk development cepat)
 * **Koneksi Internet** (diperlukan untuk meload peta OpenStreetMap Nominatim, Google Fonts, dan Material Symbols Icons)
 
 ---
