@@ -90,8 +90,40 @@
             </div>
         </div>
 
-        <!-- Trends & Occupancy Analytics Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Success/Alert Message -->
+        @if (session('success'))
+            <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-4 text-xs font-semibold flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-200/80 gap-1.5 overflow-x-auto pb-px">
+            <button onclick="switchTab('requests')" id="tab-requests" class="py-2.5 px-4.5 text-xs font-bold uppercase tracking-wider border-b-2 border-amber-600 text-amber-700 outline-none transition duration-200 flex items-center gap-2 shrink-0 cursor-pointer select-none">
+                <span class="material-symbols-outlined text-base">receipt_long</span>
+                Booking Requests
+                @php
+                    $pendingCount = collect($recentBookings)->where('status', 'pending')->count();
+                @endphp
+                @if ($pendingCount > 0)
+                    <span class="bg-amber-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full leading-none">{{ $pendingCount }}</span>
+                @endif
+            </button>
+            <button onclick="switchTab('analytics')" id="tab-analytics" class="py-2.5 px-4.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-gray-500 hover:text-gray-700 outline-none transition duration-200 flex items-center gap-2 shrink-0 cursor-pointer select-none">
+                <span class="material-symbols-outlined text-base">monitoring</span>
+                Analytics & Trends
+            </button>
+            <button onclick="switchTab('management')" id="tab-management" class="py-2.5 px-4.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-gray-500 hover:text-gray-700 outline-none transition duration-200 flex items-center gap-2 shrink-0 cursor-pointer select-none">
+                <span class="material-symbols-outlined text-base">settings_accessibility</span>
+                Management & CMS
+            </button>
+        </div>
+
+        <!-- Tab Content: Analytics & Trends -->
+        <div id="content-analytics" class="tab-content hidden space-y-6">
+            <!-- Trends & Occupancy Analytics Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Left Column: Occupancy & Revenue Trends (lg:col-span-2) -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- Occupancy & Revenue Trends -->
@@ -398,17 +430,12 @@
                 </div>
             </div>
         </div>
+        </div> <!-- Close Analytics & Trends Tab Content -->
 
-        @if (session('success'))
-            <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-4 text-xs font-semibold flex items-center gap-2">
-                <span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span>
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left 2 Columns: Bookings Table -->
-            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
+        <!-- Tab Content: Booking Requests -->
+        <div id="content-requests" class="tab-content space-y-6">
+            <!-- Bookings Table (Full Width) -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden w-full">
                 <div class="px-5 py-3.5 border-b border-gray-200/80 flex justify-between items-center bg-gray-50">
                     <h2 class="text-sm font-bold text-gray-800">Recent Booking Requests</h2>
                     <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Verify guest payment transfers</span>
@@ -507,12 +534,14 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </div> <!-- Close Bookings Table container -->
+        </div> <!-- Close Booking Requests Tab Content -->
 
-            <!-- Right Column: Quick Action Cards -->
-            <div class="space-y-6">
-                <!-- Quick Controls -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 p-5 space-y-3">
+        <!-- Tab Content: Management & CMS -->
+        <div id="content-management" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left 2 Columns: Quick Controls -->
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200/80 p-5 space-y-3">
                     <h3 class="font-bold text-gray-800 text-sm">Quick Guesthouse Controls</h3>
                     
                     <div class="space-y-1.5">
@@ -574,8 +603,10 @@
                     </div>
                 </div>
 
-                <!-- Database Info Card -->
-                <div class="bg-gray-900 text-white rounded-xl p-5 shadow-sm border border-gray-800 space-y-2.5">
+                <!-- Right 1 Column: System Info -->
+                <div class="lg:col-span-1">
+                    <!-- Database Info Card -->
+                    <div class="bg-gray-900 text-white rounded-xl p-5 shadow-sm border border-gray-800 space-y-2.5">
                     <h4 class="font-bold text-[10px] text-gray-400 uppercase tracking-wider">System Information</h4>
                     <ul class="text-[11px] space-y-1.5 text-gray-300">
                         <li class="flex justify-between">
@@ -598,7 +629,7 @@
                 </div>
             </div>
         </div>
-
+        </div>
     </main>
 
     <!-- Footer -->
@@ -621,6 +652,37 @@
                 icon.classList.add('rotate-180');
             }
         }
+
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            // Show target tab content
+            document.getElementById('content-' + tabId).classList.remove('hidden');
+
+            // Reset tab button states
+            const tabButtons = ['analytics', 'requests', 'management'];
+            tabButtons.forEach(btnId => {
+                const btn = document.getElementById('tab-' + btnId);
+                if (btn && btnId === tabId) {
+                    btn.classList.remove('border-transparent', 'text-gray-500');
+                    btn.classList.add('border-amber-600', 'text-amber-700');
+                } else if (btn) {
+                    btn.classList.remove('border-amber-600', 'text-amber-700');
+                    btn.classList.add('border-transparent', 'text-gray-500');
+                }
+            });
+
+            // Persist tab choice in localStorage
+            localStorage.setItem('admin_dashboard_active_tab', tabId);
+        }
+
+        // Initialize active tab from localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeTab = localStorage.getItem('admin_dashboard_active_tab') || 'requests';
+            switchTab(activeTab);
+        });
     </script>
 </body>
 </html>

@@ -27,16 +27,20 @@ test('pelanggan cannot access cms management', function () {
 });
 
 test('admin can access and update about us settings', function () {
+    Storage::fake('public');
     $admin = User::factory()->create(['role' => 'admin']);
 
     $response = $this->actingAs($admin)->get(route('admin.cms.about'));
     $response->assertSuccessful();
+
+    $heroFile = UploadedFile::fake()->image('hero_bg.jpg');
 
     $response = $this->actingAs($admin)->post(route('admin.cms.about'), [
         'about_title' => 'New About Us',
         'about_desc' => 'New Description',
         'about_why_list' => "Reason 1\nReason 2",
         'about_vision' => 'New Vision Statement',
+        'hero_image' => $heroFile,
     ]);
 
     $response->assertRedirect();
@@ -45,6 +49,10 @@ test('admin can access and update about us settings', function () {
     expect(Setting::getValue('about_desc'))->toBe('New Description');
     expect(Setting::getValue('about_why_list'))->toBe("Reason 1\nReason 2");
     expect(Setting::getValue('about_vision'))->toBe('New Vision Statement');
+
+    $heroImageSetting = Setting::getValue('hero_image');
+    expect($heroImageSetting)->not->toBeNull();
+    Storage::disk('public')->assertExists($heroImageSetting);
 });
 
 test('admin can perform CRUD operations on facilities', function () {

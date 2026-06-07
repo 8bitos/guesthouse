@@ -120,12 +120,12 @@ class DatabaseSeeder extends Seeder
 
         // Seed default facilities
         $facilities = [
-            ['icon' => '🏔️', 'title' => 'Mountain View', 'description' => 'Breathtaking views of surrounding mountains and Batur'],
-            ['icon' => '🏞️', 'title' => 'Valley View', 'description' => 'Scenic valley panoramas and peaceful settings'],
-            ['icon' => '🏊', 'title' => 'Swimming Pool', 'description' => 'Mountain-side infinity pool with panoramic views'],
-            ['icon' => '🚴', 'title' => 'Activities', 'description' => 'Hiking, trekking, jeep tours and adventures'],
-            ['icon' => '🍽️', 'title' => 'Fine Dining', 'description' => 'Restaurant and cafe with local cuisine'],
-            ['icon' => '💆', 'title' => 'Spa Services', 'description' => 'Wellness and relaxation treatments'],
+            ['icon' => 'filter_hdr', 'title' => 'Mountain View', 'description' => 'Breathtaking views of surrounding mountains and Batur'],
+            ['icon' => 'landscape', 'title' => 'Valley View', 'description' => 'Scenic valley panoramas and peaceful settings'],
+            ['icon' => 'pool', 'title' => 'Swimming Pool', 'description' => 'Mountain-side infinity pool with panoramic views'],
+            ['icon' => 'directions_bike', 'title' => 'Activities', 'description' => 'Hiking, trekking, jeep tours and adventures'],
+            ['icon' => 'restaurant', 'title' => 'Fine Dining', 'description' => 'Restaurant and cafe with local cuisine'],
+            ['icon' => 'spa', 'title' => 'Spa Services', 'description' => 'Wellness and relaxation treatments'],
         ];
 
         foreach ($facilities as $facilityData) {

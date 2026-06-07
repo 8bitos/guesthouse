@@ -52,8 +52,24 @@
         @endif
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-            <form method="POST" action="{{ route('admin.cms.about') }}" class="space-y-8">
+            <form method="POST" action="{{ route('admin.cms.about') }}" enctype="multipart/form-data" class="space-y-8">
                 @csrf
+
+                <!-- Hero Background Image -->
+                <div class="space-y-2">
+                    <label for="hero_image" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Hero Background Image</label>
+                    @if ($heroImage)
+                        <div class="mb-3">
+                            <span class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Current Background:</span>
+                            <div class="w-full max-w-md h-32 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative">
+                                <img src="{{ asset('storage/' . $heroImage) }}" class="w-full h-full object-cover" alt="Hero Background">
+                            </div>
+                        </div>
+                    @endif
+                    <input id="hero_image" type="file" name="hero_image" accept="image/*"
+                           class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition cursor-pointer">
+                    <span class="text-xs text-gray-400 block mt-1">Recommended size: 1920x1080px. Supported formats: JPG, PNG, WEBP (Max 2MB).</span>
+                </div>
 
                 <!-- About Us Section Title -->
                 <div class="space-y-1">

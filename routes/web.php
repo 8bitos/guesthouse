@@ -279,9 +279,12 @@ Route::get('/', function () {
     }
 
     // Fetch gallery photos
-    $galleryPhotos = Gallery::orderBy('order_index')->orderBy('created_at', 'desc')->take(8)->get();
+    $galleryPhotos = Gallery::orderBy('order_index')->orderBy('created_at', 'desc')->take(4)->get();
 
-    return view('pages.home', compact('rooms', 'aboutTitle', 'aboutDesc', 'aboutWhyList', 'aboutVision', 'facilities', 'galleryPhotos'));
+    // Fetch custom hero background image
+    $heroImage = Setting::getValue('hero_image');
+
+    return view('pages.home', compact('rooms', 'aboutTitle', 'aboutDesc', 'aboutWhyList', 'aboutVision', 'facilities', 'galleryPhotos', 'heroImage'));
 })->name('home');
 
 Route::get('/rooms', function () {

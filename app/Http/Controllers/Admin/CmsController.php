@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class CmsController extends Controller
@@ -19,8 +20,9 @@ class CmsController extends Controller
         $aboutDesc = Setting::getValue('about_desc', 'Experience luxury hospitality with breathtaking mountain and valley views...');
         $aboutWhyList = Setting::getValue('about_why_list', "Spectacular mountain and valley views\nModern luxury accommodations\nWorld-class dining and cafe\nProfessional and friendly staff");
         $aboutVision = Setting::getValue('about_vision', 'To be the most preferred luxury accommodation destination in the region, offering unforgettable experiences and exceptional hospitality.');
+        $heroImage = Setting::getValue('hero_image');
 
-        return view('admin.cms.about', compact('aboutTitle', 'aboutDesc', 'aboutWhyList', 'aboutVision'));
+        return view('admin.cms.about', compact('aboutTitle', 'aboutDesc', 'aboutWhyList', 'aboutVision', 'heroImage'));
     }
 
     /**
@@ -33,12 +35,22 @@ class CmsController extends Controller
             'about_desc' => ['required', 'string'],
             'about_why_list' => ['required', 'string'],
             'about_vision' => ['required', 'string'],
+            'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         Setting::setValue('about_title', $request->about_title);
         Setting::setValue('about_desc', $request->about_desc);
         Setting::setValue('about_why_list', $request->about_why_list);
         Setting::setValue('about_vision', $request->about_vision);
+
+        if ($request->hasFile('hero_image')) {
+            $oldPath = Setting::getValue('hero_image');
+            if ($oldPath) {
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('hero_image')->store('hero', 'public');
+            Setting::setValue('hero_image', $path);
+        }
 
         return redirect()->back()->with('success', 'About Us content updated successfully.');
     }

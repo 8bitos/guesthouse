@@ -20,20 +20,20 @@
             <!-- Contact Info -->
             <div>
                 <h4 class="font-bold mb-4">Contact Info</h4>
-                <ul class="space-y-2 text-gray-400">
-                    <li>Phone: +62 821-6991-1168</li>
-                    <li>Email: info@bagusguesthouse.com</li>
-                    <li>Address: Kintamani, Bali</li>
+                <ul class="space-y-2 text-gray-400 text-sm">
+                    <li>Phone: <a href="tel:+6281916166616" class="hover:text-white">+62 819-1616-6616</a></li>
+                    <li>Email: <a href="mailto:bagusguesthouse01@gmail.com" class="hover:text-white">bagusguesthouse01@gmail.com</a></li>
+                    <li>Address: Jl. Majapahit Gg. Muria, Kuta, Badung, Bali 80361</li>
                 </ul>
             </div>
             
             <!-- Social Media -->
             <div>
                 <h4 class="font-bold mb-4">Follow Us</h4>
-                <div class="flex gap-4">
+                <div class="flex gap-4 text-sm">
                     <a href="https://facebook.com" target="_blank" class="text-gray-400 hover:text-white">Facebook</a>
                     <a href="https://instagram.com" target="_blank" class="text-gray-400 hover:text-white">Instagram</a>
-                    <a href="https://wa.me/6282169911168" target="_blank" class="text-gray-400 hover:text-white">WhatsApp</a>
+                    <a href="https://wa.me/6281916166616" target="_blank" class="text-gray-400 hover:text-white">WhatsApp</a>
                 </div>
             </div>
         </div>
