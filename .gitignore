@@ -32,3 +32,9 @@ _ide_helper_models.php
 .DS_Store
 Thumbs.db
 *.log
+
+# Agent & AI tool configurations
+/.agents
+/.github/skills
+/AGENTS.md
+/boost.json
