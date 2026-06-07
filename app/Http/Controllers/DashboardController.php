@@ -239,80 +239,58 @@ class DashboardController extends Controller
                 ];
             })->values()->toArray();
 
-        return view('dashboard.admin', compact('user', 'stats', 'recentBookings', 'favoriteRooms', 'monthlyTrends', 'trendsTitle', 'trendsColumnHeader', 'trendFilter', 'guestOrigins'));
+        $rooms = Room::orderBy('name')->get();
+
+        return view('dashboard.admin', compact('user', 'stats', 'recentBookings', 'favoriteRooms', 'monthlyTrends', 'trendsTitle', 'trendsColumnHeader', 'trendFilter', 'guestOrigins', 'rooms'));
     }
 
     /**
-     * Export all reservation reports to CSV.
+     * Export reservation reports to XLS.
      */
-    public function exportReports(): StreamedResponse
+    public function exportReports(Request $request): StreamedResponse
     {
         $headers = [
-            'Content-type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename=reservations_report_'.date('Ymd_His').'.csv',
+            'Content-Type' => 'application/vnd.ms-excel; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename=reservations_report_'.date('Ymd_His').'.xls',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
             'Expires' => '0',
         ];
 
-        $bookings = Booking::with('room')->orderBy('created_at', 'desc')->get();
+        $query = Booking::with('room');
+
+        // Apply filters
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('room_id') && $request->room_id !== 'all') {
+            $query->where('room_id', $request->room_id);
+        }
+
+        if ($request->filled('date_type') && $request->filled('start_date')) {
+            $field = $request->date_type === 'created_at' ? 'created_at' : $request->date_type;
+            if ($field === 'created_at') {
+                $query->whereDate($field, '>=', $request->start_date);
+            } else {
+                $query->where($field, '>=', $request->start_date);
+            }
+        }
+
+        if ($request->filled('date_type') && $request->filled('end_date')) {
+            $field = $request->date_type === 'created_at' ? 'created_at' : $request->date_type;
+            if ($field === 'created_at') {
+                $query->whereDate($field, '<=', $request->end_date);
+            } else {
+                $query->where($field, '<=', $request->end_date);
+            }
+        }
+
+        $bookings = $query->orderBy('created_at', 'desc')->get();
 
         $callback = function () use ($bookings) {
-            $file = fopen('php://output', 'w');
-
-            // Add UTF-8 BOM for Excel compatibility
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-
-            // CSV Headers
-            fputcsv($file, [
-                'Invoice No',
-                'Guest Name',
-                'Guest Email',
-                'Guest Phone',
-                'Guest Country',
-                'Room Name',
-                'Check-In Date',
-                'Check-Out Date',
-                'Nights',
-                'Adults',
-                'Children',
-                'Breakfast',
-                'Extra Bed',
-                'Late Check-out',
-                'Subtotal (RP)',
-                'Discount (RP)',
-                'Tax (RP)',
-                'Total Price (RP)',
-                'Status',
-                'Created At',
-            ]);
-
-            foreach ($bookings as $booking) {
-                fputcsv($file, [
-                    $booking->invoice_no,
-                    $booking->guest_name,
-                    $booking->guest_email,
-                    $booking->guest_phone,
-                    $booking->guest_country,
-                    $booking->room ? $booking->room->name : 'Deleted Room',
-                    $booking->check_in,
-                    $booking->check_out,
-                    $booking->nights,
-                    $booking->adults,
-                    $booking->children,
-                    $booking->include_breakfast ? 'Yes' : 'No',
-                    $booking->include_extra_bed ? 'Yes' : 'No',
-                    $booking->late_checkout ? 'Yes' : 'No',
-                    $booking->subtotal,
-                    $booking->discount,
-                    $booking->tax,
-                    $booking->total_price,
-                    ucfirst($booking->status),
-                    $booking->created_at->format('Y-m-d H:i:s'),
-                ]);
-            }
-
-            fclose($file);
+            $html = view('exports.bookings_xls', compact('bookings'))->render();
+            echo $html;
         };
 
         return response()->stream($callback, 200, $headers);

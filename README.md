@@ -24,8 +24,8 @@ Bagus Guest House adalah aplikasi berbasis web modern yang dirancang untuk menge
    - Tamu dapat mengirim keluhan/feedback terkait reservasi mereka dari dashboard mereka.
    - Manajemen resolusi tiket oleh Administrator dari panel admin yang terintegrasi secara instan dengan popup modal detail keluhan di sisi tamu.
 
-5. **Ekspor Laporan CSV**:
-   - Fitur ekspor seluruh data pemesanan secara instan langsung ke format file CSV dengan BOM byte untuk pembacaan Microsoft Excel yang sempurna.
+5. **Ekspor Laporan XLS dengan Filter**:
+   - Fitur ekspor data pemesanan secara dinamis ke format spreadsheet Excel (XLS) lengkap dengan opsi filter status, tipe kamar, dan rentang tanggal check-in/check-out.
 
 6. **Integrasi Email SMTP (Gmail)**:
    - Pengiriman email otomatis kepada tamu begitu reservasi mereka disetujui oleh admin.
@@ -68,29 +68,7 @@ npm install
 ```
 
 ### 4. Konfigurasi Environment File
-Salin file `.env.example` menjadi `.env`:
-```bash
-cp .env.example .env
-```
-Buka file `.env` yang baru dibuat di text editor Anda, lalu sesuaikan konfigurasi database Anda:
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=guesthouse
-DB_USERNAME=root
-DB_PASSWORD=
-
-# Konfigurasi Pengiriman Email SMTP (Jika menggunakan Gmail App Password)
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=bagusguesthouse01@gmail.com
-MAIL_PASSWORD=hlwyvcfnrlyeqzrb
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS="bagusguesthouse01@gmail.com"
-MAIL_FROM_NAME="Bagus Guest House"
-```
+Silakan copy file `.env` yang dikirim oleh Sapta dan letakkan di root directory project Anda.
 
 ### 5. Generate Application Key
 Buat kunci keamanan enkripsi Laravel:
@@ -104,10 +82,10 @@ Buat tabel-tabel di database dan isi data dummy default (ini juga akan membuat a
 php artisan migrate:fresh --seed
 ```
 * **Akun Admin Default**:
-  - Email: `admin@gmail.com`
-  - Password: `password`
+  - Email: `bagusguesthouse01@gmail.com`
+  - Password: `admin1234`
 * **Akun Tamu Default**:
-  - Email: `pelanggan@gmail.com`
+  - Email: `user@guesthouse.com`
   - Password: `password`
 
 ### 7. Buat Symbolic Link Storage

@@ -8,14 +8,15 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 
 uses(LazilyRefreshDatabase::class);
 
-test('admin can export booking reports to CSV', function () {
+test('admin can export booking reports to XLS and apply filters', function () {
     $admin = User::factory()->create(['role' => 'admin']);
-    $room = Room::factory()->create();
+    $room1 = Room::factory()->create(['name' => 'Deluxe Room']);
+    $room2 = Room::factory()->create(['name' => 'Suite Room']);
 
-    // Create a mock booking
+    // Create mock bookings
     Booking::create([
         'user_id' => User::factory()->create(['role' => 'pelanggan'])->id,
-        'room_id' => $room->id,
+        'room_id' => $room1->id,
         'invoice_no' => 'INV-001',
         'guest_name' => 'John Doe',
         'guest_email' => 'john@example.com',
@@ -32,20 +33,69 @@ test('admin can export booking reports to CSV', function () {
         'status' => 'pending',
     ]);
 
+    Booking::create([
+        'user_id' => User::factory()->create(['role' => 'pelanggan'])->id,
+        'room_id' => $room2->id,
+        'invoice_no' => 'INV-002',
+        'guest_name' => 'Alice Smith',
+        'guest_email' => 'alice@example.com',
+        'guest_phone' => '087777777',
+        'guest_country' => 'Singapore',
+        'check_in' => '2026-07-20',
+        'check_out' => '2026-07-22',
+        'nights' => 2,
+        'adults' => 1,
+        'children' => 1,
+        'subtotal' => 2000000,
+        'tax' => 200000,
+        'total_price' => 2200000,
+        'status' => 'confirmed',
+    ]);
+
+    // 1. Export without filters
     $response = $this->actingAs($admin)->get(route('admin.reports.export'));
 
     $response->assertStatus(200);
-    $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+    $response->assertHeader('Content-Type', 'application/vnd.ms-excel; charset=utf-8');
 
     $disposition = $response->headers->get('Content-Disposition');
     expect($disposition)->toStartWith('attachment; filename=reservations_report_')
-        ->toEndWith('.csv');
+        ->toEndWith('.xls');
 
     $content = $response->streamedContent();
     expect($content)->toContain('Invoice No')
         ->toContain('INV-001')
         ->toContain('John Doe')
-        ->toContain('john@example.com');
+        ->toContain('INV-002')
+        ->toContain('Alice Smith');
+
+    // 2. Filter by status
+    $responseFilteredStatus = $this->actingAs($admin)->get(route('admin.reports.export', [
+        'status' => 'confirmed',
+    ]));
+    $contentFilteredStatus = $responseFilteredStatus->streamedContent();
+    expect($contentFilteredStatus)->toContain('INV-002')
+        ->toContain('Alice Smith')
+        ->not->toContain('INV-001');
+
+    // 3. Filter by room
+    $responseFilteredRoom = $this->actingAs($admin)->get(route('admin.reports.export', [
+        'room_id' => $room1->id,
+    ]));
+    $contentFilteredRoom = $responseFilteredRoom->streamedContent();
+    expect($contentFilteredRoom)->toContain('INV-001')
+        ->toContain('John Doe')
+        ->not->toContain('INV-002');
+
+    // 4. Filter by date range
+    $responseFilteredDate = $this->actingAs($admin)->get(route('admin.reports.export', [
+        'date_type' => 'check_in',
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]));
+    $contentFilteredDate = $responseFilteredDate->streamedContent();
+    expect($contentFilteredDate)->toContain('INV-001')
+        ->not->toContain('INV-002');
 });
 
 test('admin can view users list, edit form, and update customer profile', function () {

@@ -40,10 +40,10 @@ class DatabaseSeeder extends Seeder
 
         // Seed Admin User
         User::updateOrCreate(
-            ['email' => 'admin@guesthouse.com'],
+            ['email' => 'bagusguesthouse01@gmail.com'],
             [
                 'name' => 'Admin Bagus',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('admin1234'),
                 'role' => 'admin',
                 'phone' => '+6282169911168',
                 'address' => 'Batur, Kintamani, Bali',

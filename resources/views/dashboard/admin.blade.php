@@ -30,9 +30,10 @@
             </div>
             
             <div class="flex gap-2.5">
-                <a href="{{ route('admin.reports.export') }}" class="bg-white/10 hover:bg-white/15 text-white border border-white/20 px-3.5 py-1.5 rounded-lg font-semibold text-xs transition inline-block text-center flex items-center justify-center">
+                <button onclick="openExportModal()" class="bg-white/10 hover:bg-white/15 text-white border border-white/20 px-3.5 py-1.5 rounded-lg font-semibold text-xs transition inline-flex items-center gap-1.5 justify-center cursor-pointer">
+                    <span class="material-symbols-outlined text-[14px]">download</span>
                     Export Reports
-                </a>
+                </button>
                 <a href="{{ route('admin.rooms.create') }}" class="bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-1.5 rounded-lg font-semibold text-xs transition inline-block text-center flex items-center justify-center">
                     + Add New Room
                 </a>
@@ -817,6 +818,37 @@
                 iframe.classList.remove('opacity-0');
             }
         }
+
+        // Export Modal Handlers
+        function openExportModal() {
+            const modal = document.getElementById('export-modal');
+            const container = document.getElementById('export-modal-container');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeExportModal() {
+            const modal = document.getElementById('export-modal');
+            const container = document.getElementById('export-modal-container');
+            
+            container.classList.remove('scale-100', 'opacity-100');
+            container.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+            
+            document.body.classList.remove('overflow-hidden');
+        }
     </script>
 
     <!-- Beautiful CRUD Modal -->
@@ -856,6 +888,92 @@
                 <!-- The Iframe -->
                 <iframe id="crud-iframe" class="absolute inset-0 w-full h-full border-none opacity-0 transition-opacity duration-300" src="" onload="onIframeLoaded()"></iframe>
             </div>
+        </div>
+    </div>
+
+    <!-- Elegant Export Reports Modal -->
+    <div id="export-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div onclick="closeExportModal()" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"></div>
+        
+        <!-- Modal Container -->
+        <div class="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-lg flex flex-col overflow-hidden transition-all duration-300 scale-95 opacity-0 transform" id="export-modal-container">
+            <!-- Header -->
+            <div class="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 shrink-0 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-lg font-bold">description</span>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-gray-900 text-sm tracking-tight">Export Reservations Report</h3>
+                        <p class="text-[10px] text-gray-500 font-medium">Download styled spreadsheet (XLS) with filters</p>
+                    </div>
+                </div>
+                <button onclick="closeExportModal()" class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition flex items-center justify-center cursor-pointer select-none">
+                    <span class="material-symbols-outlined text-lg font-bold">close</span>
+                </button>
+            </div>
+            
+            <!-- Form -->
+            <form action="{{ route('admin.reports.export') }}" method="GET" onsubmit="closeExportModal(); return true;">
+                <div class="p-5 space-y-4">
+                    <!-- Status Filter -->
+                    <div class="space-y-1">
+                        <label for="export-status" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</label>
+                        <select id="export-status" name="status" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-amber-500/30 focus:border-amber-600 transition">
+                            <option value="all">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Room Filter -->
+                    <div class="space-y-1">
+                        <label for="export-room" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Room / Villa</label>
+                        <select id="export-room" name="room_id" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-amber-500/30 focus:border-amber-600 transition">
+                            <option value="all">All Rooms & Villas</option>
+                            @foreach ($rooms as $room)
+                                <option value="{{ $room->id }}">{{ $room->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Date Type Filter -->
+                    <div class="space-y-1">
+                        <label for="export-date-type" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Date Type Filter</label>
+                        <select id="export-date-type" name="date_type" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-amber-500/30 focus:border-amber-600 transition">
+                            <option value="check_in">Check-In Date</option>
+                            <option value="check_out">Check-Out Date</option>
+                            <option value="created_at">Booking Date (Created At)</option>
+                        </select>
+                    </div>
+
+                    <!-- Date Ranges -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label for="export-start-date" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Start Date</label>
+                            <input type="date" id="export-start-date" name="start_date" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-amber-500/30 focus:border-amber-600 transition">
+                        </div>
+                        <div class="space-y-1">
+                            <label for="export-end-date" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">End Date</label>
+                            <input type="date" id="export-end-date" name="end_date" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-amber-500/30 focus:border-amber-600 transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer / Action Buttons -->
+                <div class="px-5 py-3.5 border-t border-gray-100 bg-gray-50 flex items-center justify-end gap-2.5">
+                    <button type="button" onclick="closeExportModal()" class="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg text-xs font-semibold transition cursor-pointer select-none">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer select-none">
+                        <span class="material-symbols-outlined text-[15px]">download</span>
+                        Download XLS
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </body>
