@@ -134,7 +134,7 @@
                                 <!-- Dates -->
                                 <td class="px-6 py-4">
                                     <span class="block font-semibold text-gray-700">{{ date('d M Y', strtotime($booking->check_in)) }} - {{ date('d M Y', strtotime($booking->check_out)) }}</span>
-                                    <span class="text-[10px] text-gray-400 font-bold uppercase">{{ $booking->nights }} night(s) &bull; {{ $booking->adults }} adl @if($booking->children > 0), {{ $booking->children }} chd @endif</span>
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase">{{ $booking->nights }} night(s) &bull; {{ $booking->guests }} guest(s)</span>
                                 </td>
                                 <!-- Price -->
                                 <td class="px-6 py-4 font-black text-amber-700">RP {{ number_format($booking->total_price, 0, ',', '.') }}</td>

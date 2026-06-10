@@ -35,7 +35,7 @@ if (!window._nativeAlert) {
 }
 
 // ── State ──────────────────────────────────────────────────
-let selectedRoom = null;
+let selectedRooms = [];
 let nights = 0;
 let subtotal = 0;
 let discountPercent = 0;
@@ -44,9 +44,6 @@ let taxAmount = 0;
 let totalAmount = 0;
 let selectedPaymentMethod = null;
 
-let includeBreakfast = false;
-let includeExtraBed = false;
-let lateCheckout = false;
 let breakfastCost = 0;
 let extraBedCost = 0;
 let lateCheckoutCost = 0;
@@ -89,6 +86,9 @@ function handleDateChange() {
     try {
         var checkInInput = document.getElementById('check-in-input');
         var checkOutInput = document.getElementById('check-out-input');
+        var checkInSidebar = document.getElementById('check-in-sidebar');
+        var checkOutSidebar = document.getElementById('check-out-sidebar');
+        
         if (!checkInInput || !checkOutInput) return;
 
         var checkInDate = new Date(checkInInput.value);
@@ -104,6 +104,20 @@ function handleDateChange() {
             var minCheckout = new Date(checkInDate);
             minCheckout.setDate(minCheckout.getDate() + 1);
             checkOutInput.min = formatDateValue(minCheckout);
+        }
+
+        // Sync values to sidebar if they exist
+        if (checkInSidebar && checkInSidebar.value !== checkInInput.value) {
+            checkInSidebar.value = checkInInput.value;
+        }
+        if (checkInSidebar) {
+            checkInSidebar.min = checkInInput.min;
+        }
+        if (checkOutSidebar && checkOutSidebar.value !== checkOutInput.value) {
+            checkOutSidebar.value = checkOutInput.value;
+        }
+        if (checkOutSidebar) {
+            checkOutSidebar.min = checkOutInput.min;
         }
 
         calculateNights();
@@ -155,32 +169,131 @@ function calculateNights() {
     }
 }
 
-// ── Reset Add-on State Helper ──────────────────────────────
-function resetAddonState(addonKey) {
+// ── Selected Rooms Renderer ────────────────────────────────
+window.renderSelectedRooms = function() {
     try {
-        var checkbox = document.getElementById('addon-' + addonKey + '-checkbox');
-        if (checkbox && checkbox.checked) {
-            checkbox.checked = false;
-            var card = document.getElementById('opt-' + addonKey);
-            var indicator = document.getElementById('indicator-' + addonKey);
-            if (card) {
-                card.style.borderColor = '';
-                card.style.backgroundColor = '';
-            }
-            if (indicator) {
-                indicator.style.borderColor = '';
-                indicator.style.backgroundColor = '';
-                indicator.style.color = '';
-                indicator.innerHTML = '<span class="material-symbols-outlined text-xs font-bold leading-none">close</span>';
-            }
+        var noRoomEl = document.getElementById('summary-no-room');
+        var roomsListEl = document.getElementById('summary-rooms-list');
+        if (!roomsListEl) return;
+
+        if (selectedRooms.length === 0) {
+            if (noRoomEl) noRoomEl.classList.remove('hidden');
+            roomsListEl.classList.add('hidden');
+            roomsListEl.innerHTML = '';
+            return;
         }
+
+        if (noRoomEl) noRoomEl.classList.add('hidden');
+        roomsListEl.classList.remove('hidden');
+
+        var html = '';
+        selectedRooms.forEach(function(room) {
+            var itemBgClass = room.is_available === false 
+                ? 'bg-red-50/30 border-red-200 shadow-sm shadow-red-500/5' 
+                : 'bg-amber-50/20 border-amber-100/50';
+            var headerColorClass = room.is_available === false ? 'text-red-800' : 'text-amber-800';
+
+            html += `
+            <div class="${itemBgClass} border p-4 rounded-xl space-y-3 animate-fade-in-up" id="selected-room-item-${room.id}">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-[9px] font-bold ${headerColorClass} uppercase tracking-wider block">${room.type}</span>
+                        <h4 class="text-xs font-bold text-gray-900">${room.name}</h4>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-amber-700">RP ${room.price.toLocaleString('id-ID')}</span>
+                        <button type="button" onclick="removeSelectedRoom(${room.id})" class="text-gray-400 hover:text-red-600 transition flex items-center justify-center p-1 cursor-pointer border-0 bg-transparent">
+                            <span class="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                    </div>
+                </div>
+
+                ${room.is_available === false ? `
+                <div class="flex items-center gap-1.5 text-[10px] text-red-600 font-bold bg-red-50 border border-red-100 p-2 rounded-lg">
+                    <span class="material-symbols-outlined text-xs leading-none">error</span>
+                    <span>Sudah dibooking sampai: ${room.booked_until || '-'}</span>
+                </div>
+                ` : ''}
+
+                <!-- Custom Dates Toggle -->
+                <div class="flex items-center gap-1.5 text-xs text-gray-600 mt-1 select-none border-t border-gray-100/30 pt-1">
+                    <input type="checkbox" id="room-custom-date-toggle-${room.id}" 
+                           ${room.has_custom_dates ? 'checked' : ''} 
+                           onchange="toggleRoomCustomDates(${room.id}, this.checked)"
+                           class="w-3.5 h-3.5 border border-gray-300 rounded text-amber-700 focus:ring-amber-500 cursor-pointer">
+                    <label for="room-custom-date-toggle-${room.id}" class="cursor-pointer font-semibold text-[10px]">Atur tanggal custom untuk kamar ini</label>
+                </div>
+
+                ${room.has_custom_dates ? `
+                <div class="grid grid-cols-2 gap-2 mt-2 bg-amber-50/35 p-2 rounded-lg border border-amber-100/50">
+                    <div>
+                        <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Check In</label>
+                        <input type="date" value="${room.check_in}" 
+                               min="${formatDateValue(new Date())}"
+                               onchange="updateRoomCustomCheckIn(${room.id}, this.value)"
+                               class="w-full bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:border-amber-700 transition">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Check Out</label>
+                        <input type="date" value="${room.check_out}" 
+                               min="${formatDateValue(new Date(new Date(room.check_in).getTime() + 86400000))}"
+                               onchange="updateRoomCustomCheckOut(${room.id}, this.value)"
+                               class="w-full bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:border-amber-700 transition">
+                    </div>
+                    <div class="col-span-2 text-[9px] text-gray-400 font-bold mt-0.5 flex justify-between">
+                        <span>Duration:</span>
+                        <span class="text-amber-800">${room.nights} night(s)</span>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="grid grid-cols-1 gap-2 pt-2 border-t border-gray-100/50">
+                    <!-- Guests count -->
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-500 font-medium">Guests:</span>
+                        <div class="flex items-center gap-2">
+                            <input type="number" min="1" max="${room.capacity}" value="${room.guests}" 
+                                   onchange="updateRoomGuests(${room.id}, this.value)"
+                                   class="w-16 bg-white border border-gray-200 rounded px-1.5 py-0.5 text-center text-xs focus:outline-none focus:border-amber-700 transition">
+                            <span class="text-[10px] text-gray-400 font-semibold">(Max ${room.capacity})</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Addons -->
+                    <div class="flex flex-wrap gap-1.5 mt-1">
+                        <!-- Breakfast -->
+                        <button type="button" onclick="toggleRoomAddon(${room.id}, 'breakfast')" 
+                                class="px-2 py-1 rounded text-[10px] font-bold transition flex items-center gap-1 border cursor-pointer select-none ${room.include_breakfast ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-white border-gray-200 text-gray-500 hover:bg-amber-50/10'}">
+                            <span class="material-symbols-outlined text-xs leading-none">restaurant</span>
+                            <span>Breakfast (+50k)</span>
+                        </button>
+                        
+                        <!-- Extra Bed -->
+                        <button type="button" onclick="toggleRoomAddon(${room.id}, 'extra_bed')" 
+                                class="px-2 py-1 rounded text-[10px] font-bold transition flex items-center gap-1 border cursor-pointer select-none ${room.include_extra_bed ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-white border-gray-200 text-gray-500 hover:bg-amber-50/10'}">
+                            <span class="material-symbols-outlined text-xs leading-none">bed</span>
+                            <span>Extra Bed (+150k)</span>
+                        </button>
+                        
+                        <!-- Late Check-out -->
+                        <button type="button" onclick="toggleRoomAddon(${room.id}, 'late_checkout')" 
+                                class="px-2 py-1 rounded text-[10px] font-bold transition flex items-center gap-1 border cursor-pointer select-none ${room.include_late_checkout ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-white border-gray-200 text-gray-500 hover:bg-amber-50/10'}">
+                            <span class="material-symbols-outlined text-xs leading-none">schedule</span>
+                            <span>Late Out (+100k)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            `;
+        });
+        roomsListEl.innerHTML = html;
     } catch (err) {
-        console.error('Error in resetAddonState:', err);
+        console.error('Error in renderSelectedRooms:', err);
     }
-}
+};
 
 // ── Room Selection ─────────────────────────────────────────
-function selectRoom(roomId) {
+window.selectRoom = function(roomId) {
     try {
         var card = document.getElementById('room-card-' + roomId);
         if (!card) {
@@ -191,91 +304,216 @@ function selectRoom(roomId) {
         var name = card.getAttribute('data-room-name') || 'Room';
         var rawPrice = card.getAttribute('data-room-price');
         var price = parseInt(rawPrice) || 0;
+        var capacity = parseInt(card.getAttribute('data-room-capacity')) || 2;
+        var type = card.getAttribute('data-room-type') || 'Room';
 
-        selectedRoom = { id: roomId, name: name, price: price };
-
-        // Reset all card states
-        document.querySelectorAll('.room-card').forEach(function (c) {
-            c.classList.remove('ring-2', 'ring-amber-700', 'border-amber-700/50');
-            var btn = c.querySelector('.btn-select-room');
-            if (btn) {
-                btn.textContent = 'Select Room';
-                btn.className = 'btn-select-room border border-amber-700 text-amber-700 hover:bg-amber-50 px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer select-none';
-            }
-        });
-
-        // Highlight selected card
-        card.classList.add('ring-2', 'ring-amber-700', 'border-amber-700/50');
-        var selectBtn = card.querySelector('.btn-select-room');
-        if (selectBtn) {
-            selectBtn.textContent = 'Selected ✓';
-            selectBtn.className = 'btn-select-room bg-amber-700 text-white px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer select-none';
-        }
-
-        // Update add-ons visibility
-        var allowBreakfast = card.getAttribute('data-allow-breakfast') === '1';
-        var allowExtraBed = card.getAttribute('data-allow-extra-bed') === '1';
-        var allowLateCheckout = card.getAttribute('data-allow-late-checkout') === '1';
-
-        if (allowBreakfast) {
-            setElClass('opt-breakfast', 'remove', 'hidden');
+        var existingIndex = selectedRooms.findIndex(function(r) { return r.id === roomId; });
+        if (existingIndex !== -1) {
+            // Already selected, toggle it off
+            selectedRooms.splice(existingIndex, 1);
         } else {
-            setElClass('opt-breakfast', 'add', 'hidden');
-            resetAddonState('breakfast');
+            // Select it, default guests to top widget guests or clamped to capacity
+            var defaultGuests = Math.min(parseInt(document.getElementById('guests-input').value) || 2, capacity);
+            var isBooked = bookedRoomIdsMap.hasOwnProperty(roomId);
+            selectedRooms.push({
+                id: roomId,
+                name: name,
+                price: price,
+                capacity: capacity,
+                type: type,
+                guests: Math.max(1, defaultGuests),
+                include_breakfast: false,
+                include_extra_bed: false,
+                include_late_checkout: false,
+                is_available: !isBooked,
+                booked_until: isBooked ? bookedRoomIdsMap[roomId].check_out_formatted : null
+            });
         }
 
-        if (allowExtraBed) {
-            setElClass('opt-extra-bed', 'remove', 'hidden');
-        } else {
-            setElClass('opt-extra-bed', 'add', 'hidden');
-            resetAddonState('extra-bed');
-        }
-
-        if (allowLateCheckout) {
-            setElClass('opt-late-checkout', 'remove', 'hidden');
-        } else {
-            setElClass('opt-late-checkout', 'add', 'hidden');
-            resetAddonState('late-checkout');
-        }
-
-        // Update summary card
-        setElClass('summary-no-room', 'add', 'hidden');
-        setElClass('summary-room-details', 'remove', 'hidden');
-        setElText('summary-room-name', name);
-        setElText('summary-room-rate', 'RP ' + price.toLocaleString('id-ID'));
-
+        updateRoomsAvailabilityUI();
+        window.renderSelectedRooms();
         recalculatePricing();
     } catch (err) {
         console.error('Error in selectRoom:', err);
     }
-}
+};
+
+window.removeSelectedRoom = function(roomId) {
+    try {
+        selectedRooms = selectedRooms.filter(function(r) { return r.id !== roomId; });
+        updateRoomsAvailabilityUI();
+        window.renderSelectedRooms();
+        recalculatePricing();
+    } catch (err) {
+        console.error('Error in removeSelectedRoom:', err);
+    }
+};
+
+window.updateRoomGuests = function(roomId, value) {
+    try {
+        var room = selectedRooms.find(function(r) { return r.id === roomId; });
+        if (room) {
+            var g = parseInt(value) || 1;
+            g = Math.max(1, Math.min(room.capacity, g));
+            room.guests = g;
+            window.renderSelectedRooms();
+            recalculatePricing();
+        }
+    } catch (err) {
+        console.error('Error in updateRoomGuests:', err);
+    }
+};
+
+window.toggleRoomAddon = function(roomId, addonKey) {
+    try {
+        var room = selectedRooms.find(function(r) { return r.id === roomId; });
+        if (room) {
+            if (addonKey === 'breakfast') room.include_breakfast = !room.include_breakfast;
+            else if (addonKey === 'extra_bed') room.include_extra_bed = !room.include_extra_bed;
+            else if (addonKey === 'late_checkout') room.include_late_checkout = !room.include_late_checkout;
+            
+            window.renderSelectedRooms();
+            recalculatePricing();
+        }
+    } catch (err) {
+        console.error('Error in toggleRoomAddon:', err);
+    }
+};
+
+window.toggleRoomCustomDates = function(roomId, checked) {
+    try {
+        var room = selectedRooms.find(function(r) { return r.id === roomId; });
+        if (room) {
+            room.has_custom_dates = checked;
+            if (checked) {
+                var globalCheckIn = document.getElementById('check-in-input').value;
+                var globalCheckOut = document.getElementById('check-out-input').value;
+                room.check_in = globalCheckIn;
+                room.check_out = globalCheckOut;
+                room.nights = nights;
+            } else {
+                delete room.check_in;
+                delete room.check_out;
+                delete room.nights;
+            }
+            window.checkRoomAvailabilityForDates(room);
+        }
+    } catch (err) {
+        console.error('Error in toggleRoomCustomDates:', err);
+    }
+};
+
+window.updateRoomCustomCheckIn = function(roomId, value) {
+    try {
+        var room = selectedRooms.find(function(r) { return r.id === roomId; });
+        if (room && room.has_custom_dates) {
+            room.check_in = value;
+            
+            var checkInDate = new Date(room.check_in);
+            var checkOutDate = new Date(room.check_out);
+            if (!isNaN(checkInDate.getTime()) && !isNaN(checkOutDate.getTime())) {
+                if (checkOutDate <= checkInDate) {
+                    checkOutDate = new Date(checkInDate);
+                    checkOutDate.setDate(checkOutDate.getDate() + 1);
+                    room.check_out = formatDateValue(checkOutDate);
+                }
+                room.nights = Math.ceil(Math.abs(checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+            } else {
+                room.nights = 0;
+            }
+            window.checkRoomAvailabilityForDates(room);
+        }
+    } catch (err) {
+        console.error('Error in updateRoomCustomCheckIn:', err);
+    }
+};
+
+window.updateRoomCustomCheckOut = function(roomId, value) {
+    try {
+        var room = selectedRooms.find(function(r) { return r.id === roomId; });
+        if (room && room.has_custom_dates) {
+            room.check_out = value;
+            
+            var checkInDate = new Date(room.check_in);
+            var checkOutDate = new Date(room.check_out);
+            if (!isNaN(checkInDate.getTime()) && !isNaN(checkOutDate.getTime())) {
+                if (checkOutDate <= checkInDate) {
+                    checkOutDate = new Date(checkInDate);
+                    checkOutDate.setDate(checkOutDate.getDate() + 1);
+                    room.check_out = formatDateValue(checkOutDate);
+                }
+                room.nights = Math.ceil(Math.abs(checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+            } else {
+                room.nights = 0;
+            }
+            window.checkRoomAvailabilityForDates(room);
+        }
+    } catch (err) {
+        console.error('Error in updateRoomCustomCheckOut:', err);
+    }
+};
+
+window.checkRoomAvailabilityForDates = function(room) {
+    try {
+        var checkIn = room.has_custom_dates ? room.check_in : document.getElementById('check-in-input').value;
+        var checkOut = room.has_custom_dates ? room.check_out : document.getElementById('check-out-input').value;
+
+        if (!checkIn || !checkOut) {
+            room.is_available = true;
+            delete room.booked_until;
+            window.renderSelectedRooms();
+            recalculatePricing();
+            return;
+        }
+
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        fetch('/booking/check-availability?check_in=' + checkIn + '&check_out=' + checkOut, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(res) {
+            if (!res.ok) throw new Error('Failed to check availability.');
+            return res.json();
+        })
+        .then(function(data) {
+            var isBooked = false;
+            var bookedUntil = null;
+            if (data.booked_rooms) {
+                var match = data.booked_rooms.find(function(r) { return r.room_id === room.id; });
+                if (match) {
+                    isBooked = true;
+                    bookedUntil = match.check_out_formatted;
+                }
+            }
+            room.is_available = !isBooked;
+            room.booked_until = bookedUntil;
+
+            window.renderSelectedRooms();
+            recalculatePricing();
+        })
+        .catch(function(err) {
+            console.error('Error checking room availability:', err);
+        });
+    } catch (err) {
+        console.error('Error in checkRoomAvailabilityForDates:', err);
+    }
+};
 
 // ── Room Availability State & Functions ───────────────────
 let bookedRoomIdsMap = {};
 
-function deselectCurrentRoom() {
+function deselectAllRooms() {
     try {
-        selectedRoom = null;
-        
-        // Reset all card states (remove rings, etc.)
-        document.querySelectorAll('.room-card').forEach(function (c) {
-            c.classList.remove('ring-2', 'ring-amber-700', 'border-amber-700/50');
-            var btn = c.querySelector('.btn-select-room');
-            if (btn && !c.classList.contains('opacity-60')) {
-                btn.textContent = 'Select Room';
-                btn.className = 'btn-select-room border border-amber-700 text-amber-700 hover:bg-amber-50 px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer select-none';
-            }
-        });
-
-        // Update summary card to "no room" state
-        setElClass('summary-no-room', 'remove', 'hidden');
-        setElClass('summary-room-details', 'add', 'hidden');
-        setElText('summary-room-name', '');
-        setElText('summary-room-rate', '');
-
+        selectedRooms = [];
+        updateRoomsAvailabilityUI();
+        window.renderSelectedRooms();
         recalculatePricing();
     } catch (err) {
-        console.error('Error in deselectCurrentRoom:', err);
+        console.error('Error in deselectAllRooms:', err);
     }
 }
 
@@ -334,13 +572,16 @@ function updateRoomsAvailabilityUI() {
             var selectBtn = card.querySelector('.btn-select-room');
 
             if (isBooked) {
-                // If the selected room is booked, deselect it!
-                if (selectedRoom && selectedRoom.id === roomId) {
-                    deselectCurrentRoom();
+                // Mark the selected room as unavailable instead of silently removing it
+                var selectedRoom = selectedRooms.find(function(r) { return r.id === roomId; });
+                if (selectedRoom && !selectedRoom.has_custom_dates) {
+                    selectedRoom.is_available = false;
+                    selectedRoom.booked_until = bookedRoomIdsMap[roomId].check_out_formatted;
                 }
 
                 // Add gray out styling & disable events
                 card.classList.add('opacity-60', 'grayscale-[30%]', 'pointer-events-none');
+                card.classList.remove('ring-2', 'ring-amber-700', 'border-amber-700/50');
                 
                 // Show notice
                 if (statusContainer) statusContainer.classList.remove('hidden');
@@ -364,14 +605,22 @@ function updateRoomsAvailabilityUI() {
                 
                 if (statusContainer) statusContainer.classList.add('hidden');
 
-                // If this room is currently selected, make sure button says Selected ✓
-                if (selectedRoom && selectedRoom.id === roomId) {
+                var selectedRoom = selectedRooms.find(function(r) { return r.id === roomId; });
+                if (selectedRoom && !selectedRoom.has_custom_dates) {
+                    selectedRoom.is_available = true;
+                    delete selectedRoom.booked_until;
+                }
+
+                // If this room is currently selected, highlight it
+                var isSelected = selectedRooms.some(function(r) { return r.id === roomId; });
+                if (isSelected) {
                     card.classList.add('ring-2', 'ring-amber-700', 'border-amber-700/50');
                     if (selectBtn) {
                         selectBtn.textContent = 'Selected ✓';
                         selectBtn.className = 'btn-select-room bg-amber-700 text-white px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer select-none';
                     }
                 } else {
+                    card.classList.remove('ring-2', 'ring-amber-700', 'border-amber-700/50');
                     if (selectBtn) {
                         selectBtn.textContent = 'Select Room';
                         selectBtn.className = 'btn-select-room border border-amber-700 text-amber-700 hover:bg-amber-50 px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer select-none';
@@ -381,6 +630,10 @@ function updateRoomsAvailabilityUI() {
                 card.classList.remove('hidden');
             }
         });
+
+        // Re-render rooms list to reflect availability warnings
+        window.renderSelectedRooms();
+        recalculatePricing();
     } catch (err) {
         console.error('Error in updateRoomsAvailabilityUI:', err);
     }
@@ -389,7 +642,7 @@ function updateRoomsAvailabilityUI() {
 // ── Pricing Recalculation ──────────────────────────────────
 function recalculatePricing() {
     try {
-        if (!selectedRoom || nights === 0) {
+        if (selectedRooms.length === 0 || nights === 0) {
             setElText('summary-subtotal', 'RP 0');
             setElClass('summary-discount-row', 'add', 'hidden');
             setElText('summary-tax', 'RP 0');
@@ -398,50 +651,60 @@ function recalculatePricing() {
             setElClass('summary-breakfast-row', 'add', 'hidden');
             setElClass('summary-extra-bed-row', 'add', 'hidden');
             setElClass('summary-late-checkout-row', 'add', 'hidden');
+            
+            var alertEl = document.getElementById('booking-availability-alert');
+            if (alertEl) alertEl.classList.add('hidden');
+            var submitBtn = document.getElementById('btn-submit-booking');
+            if (submitBtn) {
+                submitBtn.removeAttribute('disabled');
+                submitBtn.className = 'w-full bg-amber-700 hover:bg-amber-800 text-white py-3 rounded-xl font-bold text-sm tracking-wide shadow-md shadow-amber-700/20 transition cursor-pointer select-none';
+            }
             return;
         }
 
-        subtotal = selectedRoom.price * nights;
+        subtotal = 0;
+        breakfastCost = 0;
+        extraBedCost = 0;
+        lateCheckoutCost = 0;
+
+        selectedRooms.forEach(function(room) {
+            var roomNights = room.has_custom_dates ? room.nights : nights;
+            subtotal += room.price * roomNights;
+
+            if (room.include_breakfast) {
+                breakfastCost += 50000 * room.guests * roomNights;
+            }
+            if (room.include_extra_bed) {
+                extraBedCost += 150000 * roomNights;
+            }
+            if (room.include_late_checkout) {
+                lateCheckoutCost += 100000;
+            }
+        });
+
         setElText('summary-subtotal', 'RP ' + subtotal.toLocaleString('id-ID'));
 
-        // Calculate Extras
-        var adults = parseInt(document.getElementById('adults-input').value) || 2;
-        var children = parseInt(document.getElementById('children-input').value) || 0;
-        var totalGuests = adults + children;
-
         // Breakfast
-        var breakfastCheckbox = document.getElementById('addon-breakfast-checkbox');
-        includeBreakfast = breakfastCheckbox ? breakfastCheckbox.checked : false;
-        if (includeBreakfast) {
-            breakfastCost = 50000 * totalGuests * nights;
+        if (breakfastCost > 0) {
             setElText('summary-breakfast-amount', 'RP ' + breakfastCost.toLocaleString('id-ID'));
             setElClass('summary-breakfast-row', 'remove', 'hidden');
         } else {
-            breakfastCost = 0;
             setElClass('summary-breakfast-row', 'add', 'hidden');
         }
 
         // Extra Bed
-        var extraBedCheckbox = document.getElementById('addon-extra-bed-checkbox');
-        includeExtraBed = extraBedCheckbox ? extraBedCheckbox.checked : false;
-        if (includeExtraBed) {
-            extraBedCost = 150000 * nights;
+        if (extraBedCost > 0) {
             setElText('summary-extra-bed-amount', 'RP ' + extraBedCost.toLocaleString('id-ID'));
             setElClass('summary-extra-bed-row', 'remove', 'hidden');
         } else {
-            extraBedCost = 0;
             setElClass('summary-extra-bed-row', 'add', 'hidden');
         }
 
         // Late Check-out
-        var lateCheckoutCheckbox = document.getElementById('addon-late-checkout-checkbox');
-        lateCheckout = lateCheckoutCheckbox ? lateCheckoutCheckbox.checked : false;
-        if (lateCheckout) {
-            lateCheckoutCost = 100000;
+        if (lateCheckoutCost > 0) {
             setElText('summary-late-checkout-amount', 'RP ' + lateCheckoutCost.toLocaleString('id-ID'));
             setElClass('summary-late-checkout-row', 'remove', 'hidden');
         } else {
-            lateCheckoutCost = 0;
             setElClass('summary-late-checkout-row', 'add', 'hidden');
         }
 
@@ -463,41 +726,27 @@ function recalculatePricing() {
 
         totalAmount = taxableAmount + taxAmount;
         setElText('summary-total', 'RP ' + totalAmount.toLocaleString('id-ID'));
+
+        // Enable or disable submission button depending on availability
+        var hasUnavailableRoom = selectedRooms.some(function(r) { return r.is_available === false; });
+        var alertEl = document.getElementById('booking-availability-alert');
+        var submitBtn = document.getElementById('btn-submit-booking');
+
+        if (hasUnavailableRoom) {
+            if (alertEl) alertEl.classList.remove('hidden');
+            if (submitBtn) {
+                submitBtn.setAttribute('disabled', true);
+                submitBtn.className = 'w-full bg-gray-300 text-white py-3 rounded-xl font-bold text-sm tracking-wide transition cursor-not-allowed select-none pointer-events-none';
+            }
+        } else {
+            if (alertEl) alertEl.classList.add('hidden');
+            if (submitBtn) {
+                submitBtn.removeAttribute('disabled');
+                submitBtn.className = 'w-full bg-amber-700 hover:bg-amber-800 text-white py-3 rounded-xl font-bold text-sm tracking-wide shadow-md shadow-amber-700/20 transition cursor-pointer select-none';
+            }
+        }
     } catch (err) {
         console.error('Error in recalculatePricing:', err);
-    }
-}
-
-// ── Toggle Extras Addon ────────────────────────────────────
-function toggleAddon(addonKey) {
-    try {
-        var checkbox = document.getElementById('addon-' + addonKey + '-checkbox');
-        var card = document.getElementById('opt-' + addonKey);
-        var indicator = document.getElementById('indicator-' + addonKey);
-
-        if (!checkbox || !card || !indicator) return;
-
-        checkbox.checked = !checkbox.checked;
-
-        if (checkbox.checked) {
-            card.style.borderColor = '#b45309'; // amber-700
-            card.style.backgroundColor = '#fffbeb'; // amber-50
-            indicator.style.borderColor = '#10b981'; // emerald-500
-            indicator.style.backgroundColor = '#dcfce7'; // emerald-100
-            indicator.style.color = '#15803d'; // emerald-700
-            indicator.innerHTML = '<span class="material-symbols-outlined text-xs font-bold leading-none">check</span>';
-        } else {
-            card.style.borderColor = '';
-            card.style.backgroundColor = '';
-            indicator.style.borderColor = '';
-            indicator.style.backgroundColor = '';
-            indicator.style.color = '';
-            indicator.innerHTML = '<span class="material-symbols-outlined text-xs font-bold leading-none">close</span>';
-        }
-
-        recalculatePricing();
-    } catch (err) {
-        console.error('Error in toggleAddon:', err);
     }
 }
 
@@ -583,29 +832,48 @@ function submitBooking() {
     var requests = document.getElementById('guest-requests').value.trim();
     var checkIn = document.getElementById('check-in-input').value;
     var checkOut = document.getElementById('check-out-input').value;
-    var adults = document.getElementById('adults-input').value;
-    var children = document.getElementById('children-input').value;
 
     var formData = new FormData();
-    formData.append('room_id', selectedRoom.id);
     formData.append('guest_name', name);
     formData.append('guest_email', email);
     formData.append('guest_phone', phone);
     formData.append('guest_country', country);
     formData.append('special_requests', requests);
-    formData.append('include_breakfast', includeBreakfast ? 1 : 0);
-    formData.append('include_extra_bed', includeExtraBed ? 1 : 0);
-    formData.append('late_checkout', lateCheckout ? 1 : 0);
     formData.append('check_in', checkIn);
     formData.append('check_out', checkOut);
     formData.append('nights', nights);
-    formData.append('adults', adults);
-    formData.append('children', children);
-    formData.append('subtotal', subtotal);
-    formData.append('discount', discountAmount);
-    formData.append('tax', taxAmount);
-    formData.append('total_price', totalAmount);
     formData.append('payment_proof', fileInput.files[0]);
+
+    // Append rooms array
+    selectedRooms.forEach(function(room, index) {
+        var roomNights = room.has_custom_dates ? room.nights : nights;
+        var roomSubtotal = room.price * roomNights;
+        var roomBreakfast = room.include_breakfast ? (50000 * room.guests * roomNights) : 0;
+        var roomExtraBed = room.include_extra_bed ? (150000 * roomNights) : 0;
+        var roomLateOut = room.include_late_checkout ? 100000 : 0;
+        var roomExtras = roomBreakfast + roomExtraBed + roomLateOut;
+
+        var roomDiscount = Math.round(roomSubtotal * (discountPercent / 100));
+        var roomTaxable = roomSubtotal - roomDiscount + roomExtras;
+        var roomTax = Math.round(roomTaxable * 0.1);
+        var roomTotal = roomTaxable + roomTax;
+
+        formData.append('rooms[' + index + '][room_id]', room.id);
+        formData.append('rooms[' + index + '][guests]', room.guests);
+        formData.append('rooms[' + index + '][include_breakfast]', room.include_breakfast ? 1 : 0);
+        formData.append('rooms[' + index + '][include_extra_bed]', room.include_extra_bed ? 1 : 0);
+        formData.append('rooms[' + index + '][late_checkout]', room.include_late_checkout ? 1 : 0);
+        formData.append('rooms[' + index + '][subtotal]', roomSubtotal);
+        formData.append('rooms[' + index + '][discount]', roomDiscount);
+        formData.append('rooms[' + index + '][tax]', roomTax);
+        formData.append('rooms[' + index + '][total_price]', roomTotal);
+
+        if (room.has_custom_dates) {
+            formData.append('rooms[' + index + '][check_in]', room.check_in);
+            formData.append('rooms[' + index + '][check_out]', room.check_out);
+            formData.append('rooms[' + index + '][nights]', room.nights);
+        }
+    });
 
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -637,8 +905,7 @@ function submitBooking() {
         document.getElementById('receipt-check-out').textContent = formatDateDisplay(booking.check_out);
         document.getElementById('receipt-nights').textContent = booking.nights + ' night(s)';
         
-        var guestsText = booking.adults + ' adult(s)';
-        if (parseInt(booking.children) > 0) guestsText += ', ' + booking.children + ' child(ren)';
+        var guestsText = booking.guests + ' guest(s)';
         document.getElementById('receipt-guests').textContent = guestsText;
         document.getElementById('receipt-payment-method').textContent = booking.payment_method;
 
@@ -648,8 +915,7 @@ function submitBooking() {
         // Dynamic extras in receipt
         var recBreakfastRow = document.getElementById('receipt-breakfast-row');
         if (booking.include_breakfast && booking.include_breakfast != 0) {
-            var totalGuests = parseInt(booking.adults) + parseInt(booking.children);
-            var bCost = 50000 * totalGuests * parseInt(booking.nights);
+            var bCost = booking.breakfast_cost !== undefined ? booking.breakfast_cost : 0;
             document.getElementById('receipt-breakfast-amount').textContent = 'RP ' + bCost.toLocaleString('id-ID');
             recBreakfastRow.style.display = '';
         } else {
@@ -658,7 +924,7 @@ function submitBooking() {
 
         var recExtraBedRow = document.getElementById('receipt-extra-bed-row');
         if (booking.include_extra_bed && booking.include_extra_bed != 0) {
-            var ebCost = 150000 * parseInt(booking.nights);
+            var ebCost = booking.extra_bed_cost !== undefined ? booking.extra_bed_cost : 0;
             document.getElementById('receipt-extra-bed-amount').textContent = 'RP ' + ebCost.toLocaleString('id-ID');
             recExtraBedRow.style.display = '';
         } else {
@@ -667,7 +933,7 @@ function submitBooking() {
 
         var recLateCheckoutRow = document.getElementById('receipt-late-checkout-row');
         if (booking.late_checkout && booking.late_checkout != 0) {
-            var lcCost = 100000;
+            var lcCost = booking.late_checkout_cost !== undefined ? booking.late_checkout_cost : 0;
             document.getElementById('receipt-late-checkout-amount').textContent = 'RP ' + lcCost.toLocaleString('id-ID');
             recLateCheckoutRow.style.display = '';
         } else {
@@ -746,30 +1012,36 @@ function handleBookingSubmit(e) {
         return;
     }
 
-    if (!selectedRoom) {
-        alert('Please select a room before completing reservation!');
+    if (selectedRooms.length === 0) {
+        alert('Please select at least one room before completing reservation!');
+        return;
+    }
+
+    var hasUnavailableRoom = selectedRooms.some(function(r) { return r.is_available === false; });
+    if (hasUnavailableRoom) {
+        alert('Beberapa kamar yang Anda pilih tidak tersedia untuk tanggal tersebut. Silakan ubah tanggal atau hapus kamar yang sudah dibooking.');
         return;
     }
 
     var name = document.getElementById('guest-name').value.trim();
     var checkIn = document.getElementById('check-in-input').value;
     var checkOut = document.getElementById('check-out-input').value;
-    var adults = document.getElementById('adults-input').value;
-    var children = document.getElementById('children-input').value;
+    var totalGuestsCount = selectedRooms.reduce(function(sum, r) { return sum + r.guests; }, 0);
 
     // Update Modal Step 1 Data
     document.getElementById('modal-guest-name').textContent = name;
-    document.getElementById('modal-room-name').textContent = selectedRoom.name;
+    
+    var roomNames = selectedRooms.map(function(r) { return r.name; }).join(', ');
+    document.getElementById('modal-room-name').textContent = roomNames;
     document.getElementById('modal-stay-dates').textContent = formatDateDisplay(checkIn) + ' - ' + formatDateDisplay(checkOut);
     document.getElementById('modal-nights').textContent = nights + ' night(s)';
 
-    var guestsText = adults + ' adult(s)';
-    if (parseInt(children) > 0) guestsText += ', ' + children + ' child(ren)';
+    var guestsText = totalGuestsCount + ' guest(s)';
     document.getElementById('modal-guests').textContent = guestsText;
 
     // Toggle Modal Extras Rows
     var mBreakfastRow = document.getElementById('modal-breakfast-row');
-    if (includeBreakfast) {
+    if (breakfastCost > 0) {
         mBreakfastRow.classList.remove('hidden');
         document.getElementById('modal-breakfast-val').textContent = 'Yes (RP ' + breakfastCost.toLocaleString('id-ID') + ')';
     } else {
@@ -777,7 +1049,7 @@ function handleBookingSubmit(e) {
     }
 
     var mExtraBedRow = document.getElementById('modal-extra-bed-row');
-    if (includeExtraBed) {
+    if (extraBedCost > 0) {
         mExtraBedRow.classList.remove('hidden');
         document.getElementById('modal-extra-bed-val').textContent = 'Yes (RP ' + extraBedCost.toLocaleString('id-ID') + ')';
     } else {
@@ -785,7 +1057,7 @@ function handleBookingSubmit(e) {
     }
 
     var mLateCheckoutRow = document.getElementById('modal-late-checkout-row');
-    if (lateCheckout) {
+    if (lateCheckoutCost > 0) {
         mLateCheckoutRow.classList.remove('hidden');
         document.getElementById('modal-late-checkout-val').textContent = 'Yes (RP ' + lateCheckoutCost.toLocaleString('id-ID') + ')';
     } else {
@@ -826,6 +1098,8 @@ function initBooking() {
     try {
         var checkInInput = document.getElementById('check-in-input');
         var checkOutInput = document.getElementById('check-out-input');
+        var checkInSidebar = document.getElementById('check-in-sidebar');
+        var checkOutSidebar = document.getElementById('check-out-sidebar');
 
         if (checkInInput && checkOutInput) {
             var today = new Date();
@@ -838,8 +1112,34 @@ function initBooking() {
             checkInInput.min = formatDateValue(today);
             checkOutInput.min = formatDateValue(tomorrow);
 
+            if (checkInSidebar) {
+                checkInSidebar.value = checkInInput.value;
+                checkInSidebar.min = checkInInput.min;
+            }
+            if (checkOutSidebar) {
+                checkOutSidebar.value = checkOutInput.value;
+                checkOutSidebar.min = checkOutInput.min;
+            }
+
             checkInInput.addEventListener('change', handleDateChange);
             checkOutInput.addEventListener('change', handleDateChange);
+
+            if (checkInSidebar && checkOutSidebar) {
+                checkInSidebar.addEventListener('change', function() {
+                    checkInInput.value = checkInSidebar.value;
+                    handleDateChange();
+                });
+                checkOutSidebar.addEventListener('change', function() {
+                    checkOutInput.value = checkOutSidebar.value;
+                    handleDateChange();
+                });
+            }
+        }
+
+        var guestsInput = document.getElementById('guests-input');
+        if (guestsInput) {
+            guestsInput.addEventListener('change', recalculatePricing);
+            guestsInput.addEventListener('input', recalculatePricing);
         }
 
         var toggleAvailableOnly = document.getElementById('toggle-available-only');

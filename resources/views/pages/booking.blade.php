@@ -37,7 +37,7 @@
                 <span class="text-xs font-black uppercase tracking-wider text-gray-700">Detail Pemesanan / Stay Configuration</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 <!-- Check-in Date -->
                 <div class="space-y-1.5 flex flex-col justify-between h-full">
                     <div>
@@ -68,34 +68,19 @@
                     <span class="block text-[10px] text-gray-400 font-semibold mt-1">Check-out: 08:00 - 12:00</span>
                 </div>
 
-                <!-- Adults Count -->
+                <!-- Guests Count -->
                 <div class="space-y-1.5 flex flex-col justify-between h-full">
                     <div>
                         <div class="flex items-center gap-1.5 mb-1.5">
-                            <span class="material-symbols-outlined text-amber-700 text-sm">person</span>
-                            <label for="adults-input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Adults</label>
+                            <span class="material-symbols-outlined text-amber-700 text-sm">group</span>
+                            <label for="guests-input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Guests</label>
                         </div>
                         <div class="relative">
-                            <input type="number" id="adults-input" min="1" value="2" 
+                            <input type="number" id="guests-input" min="1" value="2" 
                                    class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
                         </div>
                     </div>
-                    <span class="block text-[10px] text-gray-400 font-semibold mt-1">Age 13 or above</span>
-                </div>
-
-                <!-- Children Count -->
-                <div class="space-y-1.5 flex flex-col justify-between h-full">
-                    <div>
-                        <div class="flex items-center gap-1.5 mb-1.5">
-                            <span class="material-symbols-outlined text-amber-700 text-sm">child_care</span>
-                            <label for="children-input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Children</label>
-                        </div>
-                        <div class="relative">
-                            <input type="number" id="children-input" min="0" value="0" 
-                                   class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
-                        </div>
-                    </div>
-                    <span class="block text-[10px] text-gray-400 font-semibold mt-1">Age 12 or below</span>
+                    <span class="block text-[10px] text-gray-400 font-semibold mt-1">Total number of guests</span>
                 </div>
             </div>
         </div>
@@ -216,26 +201,29 @@
                             <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center justify-between" id="summary-no-room">
                                 <p class="text-xs text-gray-500 italic">No room selected yet. Choose a room from the left to calculate details.</p>
                             </div>
-                            <div class="bg-amber-50/20 border border-amber-100/50 p-4 rounded-xl hidden" id="summary-room-details">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <span class="text-xs font-bold text-amber-800 uppercase tracking-wider block" id="summary-room-type">SUITE</span>
-                                        <h4 class="text-sm font-bold text-gray-900" id="summary-room-name">Family Suite</h4>
-                                    </div>
-                                    <span class="text-xs font-black text-amber-700" id="summary-room-rate">RP 910.000</span>
-                                </div>
+                            <!-- Selected rooms list container -->
+                            <div id="summary-rooms-list" class="space-y-3 hidden">
+                                <!-- Dynamically generated room cards go here -->
                             </div>
                         </div>
 
-                        <!-- Date Summary -->
-                        <div class="grid grid-cols-2 gap-4 text-xs border-b border-gray-100 pb-4">
+                        <!-- Date Configuration inside Sidebar -->
+                        <div class="grid grid-cols-2 gap-3 text-xs border-b border-gray-100 pb-4">
                             <div>
-                                <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Check In</span>
-                                <span class="font-bold text-gray-800" id="summary-check-in">-</span>
+                                <label for="check-in-sidebar" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-amber-700 text-xs">login</span>
+                                    <span>Check In</span>
+                                </label>
+                                <input type="date" id="check-in-sidebar" 
+                                       class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-amber-700 transition">
                             </div>
                             <div>
-                                <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Check Out</span>
-                                <span class="font-bold text-gray-800" id="summary-check-out">-</span>
+                                <label for="check-out-sidebar" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-amber-700 text-xs">logout</span>
+                                    <span>Check Out</span>
+                                </label>
+                                <input type="date" id="check-out-sidebar" 
+                                       class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-amber-700 transition">
                             </div>
                         </div>
 
@@ -321,66 +309,22 @@
                             </div>
                         </div>
 
-                        <!-- Add-ons & Extras -->
-                        <div class="space-y-4 border-t border-gray-100 pt-6">
-                            <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-gray-500 text-base leading-none">add_box</span>
-                                <span>Extras & Add-ons</span>
-                            </h4>
 
-                            <div class="space-y-3">
-                                <!-- Breakfast Option -->
-                                <div id="opt-breakfast" onclick="toggleAddon('breakfast')" class="group flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-amber-700 bg-white hover:bg-amber-50/10 cursor-pointer transition select-none">
-                                    <div class="flex items-center gap-3">
-                                        <span class="material-symbols-outlined text-amber-700 text-lg">restaurant</span>
-                                        <div>
-                                            <span class="block text-xs font-bold text-gray-800">Breakfast (Sarapan)</span>
-                                            <span class="block text-[10px] text-gray-500">+RP 50.000 / guest / night</span>
-                                        </div>
-                                    </div>
-                                    <div class="addon-status-indicator flex items-center justify-center w-6 h-6 rounded-full border border-gray-200 bg-gray-50 text-gray-300 group-hover:text-gray-400 group-hover:border-gray-300 transition font-bold" id="indicator-breakfast" style="display: flex;">
-                                        <span class="material-symbols-outlined text-xs font-bold leading-none">close</span>
-                                    </div>
-                                    <input type="checkbox" id="addon-breakfast-checkbox" class="hidden" name="include_breakfast" value="1">
-                                </div>
-
-                                <!-- Extra Bed Option -->
-                                <div id="opt-extra-bed" onclick="toggleAddon('extra-bed')" class="group flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-amber-700 bg-white hover:bg-amber-50/10 cursor-pointer transition select-none">
-                                    <div class="flex items-center gap-3">
-                                        <span class="material-symbols-outlined text-amber-700 text-lg">bed</span>
-                                        <div>
-                                            <span class="block text-xs font-bold text-gray-800">Extra Bed (Kasur Tambahan)</span>
-                                            <span class="block text-[10px] text-gray-500">+RP 150.000 / night</span>
-                                        </div>
-                                    </div>
-                                    <div class="addon-status-indicator flex items-center justify-center w-6 h-6 rounded-full border border-gray-200 bg-gray-50 text-gray-300 group-hover:text-gray-400 group-hover:border-gray-300 transition font-bold" id="indicator-extra-bed" style="display: flex;">
-                                        <span class="material-symbols-outlined text-xs font-bold leading-none">close</span>
-                                    </div>
-                                    <input type="checkbox" id="addon-extra-bed-checkbox" class="hidden" name="include_extra_bed" value="1">
-                                </div>
-
-                                <!-- Late Check-out Option -->
-                                <div id="opt-late-checkout" onclick="toggleAddon('late-checkout')" class="group flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-amber-700 bg-white hover:bg-amber-50/10 cursor-pointer transition select-none">
-                                    <div class="flex items-center gap-3">
-                                        <span class="material-symbols-outlined text-amber-700 text-lg">schedule</span>
-                                        <div>
-                                            <span class="block text-xs font-bold text-gray-800">Late Check-out</span>
-                                            <span class="block text-[10px] text-gray-500">+RP 100.000 flat</span>
-                                        </div>
-                                    </div>
-                                    <div class="addon-status-indicator flex items-center justify-center w-6 h-6 rounded-full border border-gray-200 bg-gray-50 text-gray-300 group-hover:text-gray-400 group-hover:border-gray-300 transition font-bold" id="indicator-late-checkout" style="display: flex;">
-                                        <span class="material-symbols-outlined text-xs font-bold leading-none">close</span>
-                                    </div>
-                                    <input type="checkbox" id="addon-late-checkout-checkbox" class="hidden" name="late_checkout" value="1">
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Agreement Checkbox -->
                         <label class="flex items-start gap-2 cursor-pointer select-none text-[10px] text-gray-500 leading-tight">
                             <input type="checkbox" required class="mt-0.5 w-3.5 h-3.5 border border-gray-300 rounded text-amber-700 focus:ring-amber-500">
                             <span>I agree to the reservation terms, guest capacity restrictions, and Kintamani Guesthouse booking regulations.</span>
                         </label>
+
+                        <!-- Booking Availability Alert Hint -->
+                        <div id="booking-availability-alert" class="hidden bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs space-y-1">
+                            <div class="flex items-center gap-1.5 font-bold">
+                                <span class="material-symbols-outlined text-sm text-red-600">error</span>
+                                <span>Kamar Tidak Tersedia / Overlapping Booking</span>
+                            </div>
+                            <p class="text-[10px] text-gray-500 leading-normal">Beberapa kamar yang Anda pilih sudah dibooking pada tanggal tersebut. Silakan ubah tanggal atau hapus kamar yang tidak tersedia dari summary.</p>
+                        </div>
 
                         <!-- Submit Button -->
                         <button type="submit" id="btn-submit-booking"
@@ -476,7 +420,7 @@
                         </div>
                         <div class="flex justify-between py-1 border-b border-gray-200/50">
                             <span class="text-gray-500">Guests:</span>
-                            <strong class="text-gray-900" id="modal-guests">2 adults</strong>
+                            <strong class="text-gray-900" id="modal-guests">2 guests</strong>
                         </div>
                         <!-- Modal details rows for add-ons -->
                         <div class="flex justify-between py-1 border-b border-gray-200/50 hidden" id="modal-breakfast-row">

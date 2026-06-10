@@ -161,7 +161,17 @@
                     </tr>
                     <tr>
                         <td class="label">Room</td>
-                        <td class="val">{{ $booking->room ? $booking->room->name : 'Accommodation' }} ({{ $booking->room ? $booking->room->type : 'Room' }})</td>
+                        <td class="val">
+                            @php
+                                $roomsList = collect([$booking->room ? $booking->room->name . ' (' . $booking->room->type . ')' : 'Accommodation']);
+                                foreach($booking->childBookings as $child) {
+                                    if ($child->room) {
+                                        $roomsList->push($child->room->name . ' (' . $child->room->type . ')');
+                                    }
+                                }
+                                echo $roomsList->join(', ');
+                            @endphp
+                        </td>
                     </tr>
                     <tr>
                         <td class="label">Stay Dates</td>
@@ -173,20 +183,26 @@
                     </tr>
                     <tr>
                         <td class="label">Guests</td>
-                        <td class="val">{{ $booking->adults }} Adult(s) @if($booking->children > 0), {{ $booking->children }} Child(ren)@endif</td>
+                        <td class="val">{{ $booking->guests + $booking->childBookings->sum('guests') }} Guest(s)</td>
                     </tr>
-                    @if($booking->include_breakfast || $booking->include_extra_bed || $booking->late_checkout)
+                    @php
+                        $addons = [];
+                        if($booking->include_breakfast) $addons[] = 'Breakfast (' . ($booking->room ? $booking->room->name : 'Room 1') . ')';
+                        if($booking->include_extra_bed) $addons[] = 'Extra Bed (' . ($booking->room ? $booking->room->name : 'Room 1') . ')';
+                        if($booking->late_checkout) $addons[] = 'Late Out (' . ($booking->room ? $booking->room->name : 'Room 1') . ')';
+                        
+                        foreach($booking->childBookings as $child) {
+                            if($child->include_breakfast) $addons[] = 'Breakfast (' . ($child->room ? $child->room->name : 'Room') . ')';
+                            if($child->include_extra_bed) $addons[] = 'Extra Bed (' . ($child->room ? $child->room->name : 'Room') . ')';
+                            if($child->late_checkout) $addons[] = 'Late Out (' . ($child->room ? $child->room->name : 'Room') . ')';
+                        }
+                    @endphp
+                    @if(count($addons) > 0)
                     <tr>
                         <td class="label">Add-ons</td>
                         <td class="val">
                             <span style="font-size: 12px; color: #475569; font-weight: normal;">
-                                @php
-                                    $addons = [];
-                                    if($booking->include_breakfast) $addons[] = 'Breakfast (Sarapan)';
-                                    if($booking->include_extra_bed) $addons[] = 'Extra Bed';
-                                    if($booking->late_checkout) $addons[] = 'Late Check-out';
-                                    echo implode(', ', $addons);
-                                @endphp
+                                {{ implode(', ', $addons) }}
                             </span>
                         </td>
                     </tr>
@@ -197,7 +213,7 @@
                     </tr>
                     <tr class="price-row">
                         <td class="label price-label">Total Amount Paid</td>
-                        <td class="val price-val">RP {{ number_format($booking->total_price, 0, ',', '.') }}</td>
+                        <td class="val price-val">RP {{ number_format($booking->total_price + $booking->childBookings->sum('total_price'), 0, ',', '.') }}</td>
                     </tr>
                 </table>
 

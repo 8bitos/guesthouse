@@ -83,14 +83,19 @@ class BookingController extends Controller
             'special_requests' => ['nullable', 'string'],
         ]);
 
-        $booking->update([
+        $parent = $booking->parent_id ? $booking->parentBooking : $booking;
+
+        $updateData = [
             'guest_name' => $request->guest_name,
             'guest_email' => $request->guest_email,
             'guest_phone' => $request->guest_phone,
             'guest_country' => $request->guest_country,
             'status' => $request->status,
             'special_requests' => $request->special_requests,
-        ]);
+        ];
+
+        $parent->update($updateData);
+        $parent->childBookings()->update($updateData);
 
         return redirect()->route('admin.bookings.index')->with('success', 'Reservation details updated successfully.');
     }
@@ -101,7 +106,8 @@ class BookingController extends Controller
     public function destroy(string $id): RedirectResponse
     {
         $booking = Booking::findOrFail($id);
-        $booking->delete();
+        $parent = $booking->parent_id ? $booking->parentBooking : $booking;
+        $parent->delete();
 
         return redirect()->route('admin.bookings.index')->with('success', 'Reservation deleted successfully.');
     }
@@ -111,7 +117,9 @@ class BookingController extends Controller
      */
     public function cancel(Booking $booking): RedirectResponse
     {
-        $booking->update(['status' => 'cancelled']);
+        $parent = $booking->parent_id ? $booking->parentBooking : $booking;
+        $parent->update(['status' => 'cancelled']);
+        $parent->childBookings()->update(['status' => 'cancelled']);
 
         return redirect()->back()->with('success', 'Reservation has been cancelled successfully.');
     }

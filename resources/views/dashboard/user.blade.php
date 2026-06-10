@@ -520,10 +520,7 @@
             document.getElementById('receipt-check-out').textContent = formatDateDisplay(booking.check_out);
             document.getElementById('receipt-nights').textContent = booking.nights + ' night(s)';
             
-            var guestsText = booking.adults + ' Adult(s)';
-            if (booking.children > 0) {
-                guestsText += ', ' + booking.children + ' Child(ren)';
-            }
+            var guestsText = booking.guests + ' Guest(s)';
             document.getElementById('receipt-guests').textContent = guestsText;
             document.getElementById('receipt-payment-method').textContent = booking.payment_method || 'Bank Transfer';
             
@@ -537,8 +534,7 @@
             // Populating extras in dashboard user receipt modal
             var recBreakfastRow = document.getElementById('receipt-breakfast-row');
             if (booking.include_breakfast && booking.include_breakfast != 0) {
-                var totalGuests = parseInt(booking.adults) + parseInt(booking.children);
-                var bCost = 50000 * totalGuests * parseInt(booking.nights);
+                var bCost = booking.breakfast_cost !== undefined ? booking.breakfast_cost : (50000 * parseInt(booking.guests) * parseInt(booking.nights));
                 document.getElementById('receipt-breakfast-amount').textContent = 'RP ' + bCost.toLocaleString('id-ID');
                 recBreakfastRow.style.display = '';
             } else {
@@ -547,7 +543,7 @@
 
             var recExtraBedRow = document.getElementById('receipt-extra-bed-row');
             if (booking.include_extra_bed && booking.include_extra_bed != 0) {
-                var ebCost = 150000 * parseInt(booking.nights);
+                var ebCost = booking.extra_bed_cost !== undefined ? booking.extra_bed_cost : (150000 * parseInt(booking.nights));
                 document.getElementById('receipt-extra-bed-amount').textContent = 'RP ' + ebCost.toLocaleString('id-ID');
                 recExtraBedRow.style.display = '';
             } else {
@@ -556,7 +552,7 @@
 
             var recLateCheckoutRow = document.getElementById('receipt-late-checkout-row');
             if (booking.late_checkout && booking.late_checkout != 0) {
-                var lcCost = 100000;
+                var lcCost = booking.late_checkout_cost !== undefined ? booking.late_checkout_cost : 100000;
                 document.getElementById('receipt-late-checkout-amount').textContent = 'RP ' + lcCost.toLocaleString('id-ID');
                 recLateCheckoutRow.style.display = '';
             } else {

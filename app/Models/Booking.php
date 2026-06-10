@@ -6,6 +6,7 @@ use Database\Factories\BookingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
@@ -18,6 +19,7 @@ class Booking extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'parent_id',
         'invoice_no',
         'user_id',
         'room_id',
@@ -32,8 +34,7 @@ class Booking extends Model
         'check_in',
         'check_out',
         'nights',
-        'adults',
-        'children',
+        'guests',
         'subtotal',
         'discount',
         'tax',
@@ -61,5 +62,25 @@ class Booking extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
+    }
+
+    /**
+     * Get the parent booking.
+     *
+     * @return BelongsTo<Booking, Booking>
+     */
+    public function parentBooking(): BelongsTo
+    {
+        return $this->belongsTo(Booking::class, 'parent_id');
+    }
+
+    /**
+     * Get the child bookings.
+     *
+     * @return HasMany<Booking>
+     */
+    public function childBookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'parent_id');
     }
 }

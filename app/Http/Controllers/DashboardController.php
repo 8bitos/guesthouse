@@ -24,36 +24,72 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Load real bookings for the logged-in user
-        $mockBookings = Booking::with('room')
+        // Load parent bookings with rooms and child bookings (for multi-room grouping)
+        $bookings = Booking::with(['room', 'childBookings.room'])
             ->where('user_id', $user->id)
+            ->whereNull('parent_id')
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($booking) {
-                return [
-                    'id' => $booking->invoice_no,
-                    'invoice_no' => $booking->invoice_no,
-                    'room_name' => $booking->room ? $booking->room->name : 'Deleted Room',
-                    'check_in' => $booking->check_in,
-                    'check_out' => $booking->check_out,
-                    'price' => $booking->total_price,
-                    'status' => $booking->status,
-                    'date' => $booking->created_at->format('Y-m-d H:i'),
-                    'guest_name' => $booking->guest_name,
-                    'nights' => $booking->nights,
-                    'adults' => $booking->adults,
-                    'children' => $booking->children,
-                    'include_breakfast' => $booking->include_breakfast,
-                    'include_extra_bed' => $booking->include_extra_bed,
-                    'late_checkout' => $booking->late_checkout,
-                    'payment_method' => $booking->payment_method,
-                    'subtotal' => $booking->subtotal,
-                    'discount' => $booking->discount,
-                    'tax' => $booking->tax,
-                    'total_price' => $booking->total_price,
-                    'db_id' => $booking->id,
-                ];
-            });
+            ->get();
+
+        $mockBookings = $bookings->map(function ($booking) {
+            // Roll up information from children
+            $allRooms = collect([$booking->room])->concat($booking->childBookings->pluck('room'))->filter()->unique('id');
+            $roomNames = $allRooms->pluck('name')->join(', ');
+
+            $totalGuests = $booking->guests + $booking->childBookings->sum('guests');
+            $totalPrice = $booking->total_price + $booking->childBookings->sum('total_price');
+            $subtotal = $booking->subtotal + $booking->childBookings->sum('subtotal');
+            $discount = $booking->discount + $booking->childBookings->sum('discount');
+            $tax = $booking->tax + $booking->childBookings->sum('tax');
+
+            $anyBreakfast = $booking->include_breakfast || $booking->childBookings->contains('include_breakfast', true);
+            $anyExtraBed = $booking->include_extra_bed || $booking->childBookings->contains('include_extra_bed', true);
+            $anyLateCheckout = $booking->late_checkout || $booking->childBookings->contains('late_checkout', true);
+
+            // Compute actual costs to pass to JS
+            $breakfastCost = 0;
+            $extraBedCost = 0;
+            $lateCheckoutCost = 0;
+
+            $allBookings = collect([$booking])->concat($booking->childBookings);
+            foreach ($allBookings as $b) {
+                if ($b->include_breakfast) {
+                    $breakfastCost += 50000 * $b->guests * $b->nights;
+                }
+                if ($b->include_extra_bed) {
+                    $extraBedCost += 150000 * $b->nights;
+                }
+                if ($b->late_checkout) {
+                    $lateCheckoutCost += 100000;
+                }
+            }
+
+            return [
+                'id' => $booking->invoice_no,
+                'invoice_no' => $booking->invoice_no,
+                'room_name' => $roomNames ?: 'Deleted Room',
+                'check_in' => $booking->check_in,
+                'check_out' => $booking->check_out,
+                'price' => $totalPrice,
+                'status' => $booking->status,
+                'date' => $booking->created_at->format('Y-m-d H:i'),
+                'guest_name' => $booking->guest_name,
+                'nights' => $booking->nights,
+                'guests' => $totalGuests,
+                'include_breakfast' => $anyBreakfast,
+                'include_extra_bed' => $anyExtraBed,
+                'late_checkout' => $anyLateCheckout,
+                'breakfast_cost' => $breakfastCost,
+                'extra_bed_cost' => $extraBedCost,
+                'late_checkout_cost' => $lateCheckoutCost,
+                'payment_method' => $booking->payment_method,
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'tax' => $tax,
+                'total_price' => $totalPrice,
+                'db_id' => $booking->id,
+            ];
+        });
 
         // Load user's complaints
         $complaints = Complaint::with('booking')
@@ -301,7 +337,12 @@ class DashboardController extends Controller
      */
     public function approveBooking(Booking $booking): RedirectResponse
     {
+        if ($booking->parent_id) {
+            $booking = $booking->parentBooking;
+        }
+
         $booking->update(['status' => 'confirmed']);
+        $booking->childBookings()->update(['status' => 'confirmed']);
 
         // Send confirmation email to guest
         Mail::to($booking->guest_email)->send(new BookingApproved($booking));
@@ -314,7 +355,12 @@ class DashboardController extends Controller
      */
     public function rejectBooking(Booking $booking): RedirectResponse
     {
+        if ($booking->parent_id) {
+            $booking = $booking->parentBooking;
+        }
+
         $booking->update(['status' => 'rejected']);
+        $booking->childBookings()->update(['status' => 'rejected']);
 
         return redirect()->back()->with('success', 'Booking rejected successfully.');
     }

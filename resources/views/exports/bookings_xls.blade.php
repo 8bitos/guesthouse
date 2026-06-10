@@ -75,8 +75,7 @@
         <th>Check-In Date</th>
         <th>Check-Out Date</th>
         <th class="text-center">Nights</th>
-        <th class="text-center">Adults</th>
-        <th class="text-center">Children</th>
+        <th class="text-center">Guests</th>
         <th class="text-center">Breakfast</th>
         <th class="text-center">Extra Bed</th>
         <th class="text-center">Late Check-out</th>
@@ -100,8 +99,7 @@
           <td class="date-cell text-center">{{ $booking->check_in }}</td>
           <td class="date-cell text-center">{{ $booking->check_out }}</td>
           <td class="text-center">{{ $booking->nights }}</td>
-          <td class="text-center">{{ $booking->adults }}</td>
-          <td class="text-center">{{ $booking->children }}</td>
+          <td class="text-center">{{ $booking->guests }}</td>
           <td class="text-center">{{ $booking->include_breakfast ? 'Yes' : 'No' }}</td>
           <td class="text-center">{{ $booking->include_extra_bed ? 'Yes' : 'No' }}</td>
           <td class="text-center">{{ $booking->late_checkout ? 'Yes' : 'No' }}</td>
@@ -114,7 +112,7 @@
         </tr>
       @empty
         <tr>
-          <td colspan="20" style="text-align: center; color: #64748b; font-style: italic; padding: 12px;">No records match the selected filters.</td>
+          <td colspan="19" style="text-align: center; color: #64748b; font-style: italic; padding: 12px;">No records match the selected filters.</td>
         </tr>
       @endforelse
     </tbody>
@@ -123,8 +121,7 @@
         <tr style="font-weight: bold; background-color: #f1f5f9;">
           <td colspan="8" style="text-align: right; font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">Total Summary</td>
           <td style="text-align: center; font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('nights') }}</td>
-          <td style="text-align: center; font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('adults') }}</td>
-          <td style="text-align: center; font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('children') }}</td>
+          <td style="text-align: center; font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('guests') }}</td>
           <td colspan="3" style="background-color: #e2e8f0; border-top: 2px solid #b5babf;"></td>
           <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('subtotal') }}</td>
           <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('discount') }}</td>
