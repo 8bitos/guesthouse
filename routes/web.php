@@ -339,6 +339,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/bookings/{booking}/approve', [DashboardController::class, 'approveBooking'])->name('admin.bookings.approve');
         Route::post('/admin/bookings/{booking}/reject', [DashboardController::class, 'rejectBooking'])->name('admin.bookings.reject');
         Route::post('/admin/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel'])->name('admin.bookings.cancel');
+        Route::post('/admin/bookings/{booking}/check-in', [AdminBookingController::class, 'checkIn'])->name('admin.bookings.checkin');
+        Route::post('/admin/bookings/{booking}/check-out', [AdminBookingController::class, 'checkOut'])->name('admin.bookings.checkout');
 
         Route::resource('admin/bookings', AdminBookingController::class)->except(['create', 'store', 'show'])->names([
             'index' => 'admin.bookings.index',

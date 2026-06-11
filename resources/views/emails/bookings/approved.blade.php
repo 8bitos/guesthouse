@@ -187,14 +187,26 @@
                     </tr>
                     @php
                         $addons = [];
-                        if($booking->include_breakfast) $addons[] = 'Breakfast (' . ($booking->room ? $booking->room->name : 'Room 1') . ')';
-                        if($booking->include_extra_bed) $addons[] = 'Extra Bed (' . ($booking->room ? $booking->room->name : 'Room 1') . ')';
-                        if($booking->late_checkout) $addons[] = 'Late Out (' . ($booking->room ? $booking->room->name : 'Room 1') . ')';
+                        if ($booking->addons && is_array($booking->addons) && count($booking->addons) > 0) {
+                            foreach ($booking->addons as $addonName) {
+                                $addons[] = $addonName . ' (' . ($booking->room ? $booking->room->name : 'Room 1') . ')';
+                            }
+                        } else {
+                            if($booking->include_breakfast) $addons[] = 'Breakfast (' . ($booking->room ? $booking->room->name : 'Room 1') . ')';
+                            if($booking->include_extra_bed) $addons[] = 'Extra Bed (' . ($booking->room ? $booking->room->name : 'Room 1') . ')';
+                            if($booking->late_checkout) $addons[] = 'Late Out (' . ($booking->room ? $booking->room->name : 'Room 1') . ')';
+                        }
                         
                         foreach($booking->childBookings as $child) {
-                            if($child->include_breakfast) $addons[] = 'Breakfast (' . ($child->room ? $child->room->name : 'Room') . ')';
-                            if($child->include_extra_bed) $addons[] = 'Extra Bed (' . ($child->room ? $child->room->name : 'Room') . ')';
-                            if($child->late_checkout) $addons[] = 'Late Out (' . ($child->room ? $child->room->name : 'Room') . ')';
+                            if ($child->addons && is_array($child->addons) && count($child->addons) > 0) {
+                                foreach ($child->addons as $addonName) {
+                                    $addons[] = $addonName . ' (' . ($child->room ? $child->room->name : 'Room') . ')';
+                                }
+                            } else {
+                                if($child->include_breakfast) $addons[] = 'Breakfast (' . ($child->room ? $child->room->name : 'Room') . ')';
+                                if($child->include_extra_bed) $addons[] = 'Extra Bed (' . ($child->room ? $child->room->name : 'Room') . ')';
+                                if($child->late_checkout) $addons[] = 'Late Out (' . ($child->room ? $child->room->name : 'Room') . ')';
+                            }
                         }
                     @endphp
                     @if(count($addons) > 0)

@@ -28,6 +28,12 @@ class RoomFactory extends Factory
             'allow_breakfast' => true,
             'allow_extra_bed' => true,
             'allow_late_checkout' => true,
+            'size' => fake()->randomElement([15, 20, 25, 30]),
+            'addons' => [
+                ['name' => 'Breakfast', 'price' => 50000, 'description' => 'Enable breakfast addon', 'type' => 'per_guest_per_night'],
+                ['name' => 'Extra Bed', 'price' => 150000, 'description' => 'Enable extra bed', 'type' => 'per_night'],
+                ['name' => 'Late Check-out', 'price' => 100000, 'description' => 'Enable late check-out', 'type' => 'flat_fee'],
+            ],
         ];
     }
 }

@@ -97,6 +97,18 @@ class BookingController extends Controller
         $parent->update($updateData);
         $parent->childBookings()->update($updateData);
 
+        // Sync room availability if booking is finalized/cancelled/rejected
+        if (in_array($request->status, ['completed', 'cancelled', 'rejected'])) {
+            if ($parent->room) {
+                $parent->room->update(['status' => 'tersedia']);
+            }
+            foreach ($parent->childBookings as $child) {
+                if ($child->room) {
+                    $child->room->update(['status' => 'tersedia']);
+                }
+            }
+        }
+
         return redirect()->route('admin.bookings.index')->with('success', 'Reservation details updated successfully.');
     }
 
@@ -121,6 +133,42 @@ class BookingController extends Controller
         $parent->update(['status' => 'cancelled']);
         $parent->childBookings()->update(['status' => 'cancelled']);
 
+        // Set rooms to tersedia
+        if ($parent->room) {
+            $parent->room->update(['status' => 'tersedia']);
+        }
+        foreach ($parent->childBookings as $child) {
+            if ($child->room) {
+                $child->room->update(['status' => 'tersedia']);
+            }
+        }
+
         return redirect()->back()->with('success', 'Reservation has been cancelled successfully.');
+    }
+
+    /**
+     * Check in the guest.
+     */
+    public function checkIn(Booking $booking): RedirectResponse
+    {
+        $booking->update(['status' => 'confirmed']);
+        if ($booking->room) {
+            $booking->room->update(['status' => 'dipesan']);
+        }
+
+        return redirect()->back()->with('success', 'Guest checked in successfully. Room is now Occupied.');
+    }
+
+    /**
+     * Check out the guest.
+     */
+    public function checkOut(Booking $booking): RedirectResponse
+    {
+        $booking->update(['status' => 'completed']);
+        if ($booking->room) {
+            $booking->room->update(['status' => 'tersedia']);
+        }
+
+        return redirect()->back()->with('success', 'Guest checked out successfully. Room is now Vacant.');
     }
 }

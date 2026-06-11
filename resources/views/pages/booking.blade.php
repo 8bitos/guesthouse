@@ -68,19 +68,20 @@
                     <span class="block text-[10px] text-gray-400 font-semibold mt-1">Check-out: 08:00 - 12:00</span>
                 </div>
 
-                <!-- Guests Count -->
+                <!-- Apply Stay Action -->
                 <div class="space-y-1.5 flex flex-col justify-between h-full">
                     <div>
                         <div class="flex items-center gap-1.5 mb-1.5">
-                            <span class="material-symbols-outlined text-amber-700 text-sm">group</span>
-                            <label for="guests-input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Guests</label>
+                            <span class="material-symbols-outlined text-amber-700 text-sm">check_circle</span>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Action</label>
                         </div>
-                        <div class="relative">
-                            <input type="number" id="guests-input" min="1" value="2" 
-                                   class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
-                        </div>
+                        <button type="button" id="btn-apply-stay"
+                                class="w-full bg-amber-700 hover:bg-amber-800 text-white rounded-lg px-4 py-2 text-xs font-bold transition cursor-pointer select-none shadow-sm flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined text-xs leading-none">done</span>
+                            <span>Apply Stay</span>
+                        </button>
                     </div>
-                    <span class="block text-[10px] text-gray-400 font-semibold mt-1">Total number of guests</span>
+                    <span class="block text-[10px] text-gray-400 font-semibold mt-1">Apply dates and check availability</span>
                 </div>
             </div>
         </div>
@@ -106,9 +107,10 @@
                     @forelse($rooms as $room)
                         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col sm:flex-row transition duration-300 hover:shadow-md room-card cursor-pointer" 
                              id="room-card-{{ $room->id }}" data-room-id="{{ $room->id }}" data-room-name="{{ $room->name }}" data-room-price="{{ $room->price }}"
-                             data-allow-breakfast="{{ $room->allow_breakfast ? 1 : 0 }}"
-                             data-allow-extra-bed="{{ $room->allow_extra_bed ? 1 : 0 }}"
-                             data-allow-late-checkout="{{ $room->allow_late_checkout ? 1 : 0 }}"
+                             data-room-capacity="{{ $room->capacity }}"
+                             data-room-type="{{ $room->type }}"
+                             data-room-size="{{ $room->size ?? ($room->capacity >= 4 ? 25 : 15) }}"
+                             data-room-addons="{{ json_encode($room->addons ?? []) }}"
                              onclick="selectRoom({{ $room->id }})">
                             <!-- Room Image -->
                             <div class="sm:w-1/3 aspect-[4/3] sm:aspect-auto bg-gray-100 overflow-hidden flex items-center justify-center shrink-0 relative border-b sm:border-b-0 sm:border-r border-gray-100">
@@ -143,7 +145,13 @@
                                         </span>
                                         <span class="flex items-center gap-1 bg-gray-50 border border-gray-100 px-2 py-1 rounded">
                                             <span class="material-symbols-outlined text-xs leading-none text-gray-400">aspect_ratio</span>
-                                            <span>{{ $room->capacity >= 4 ? 25 : 15 }} m²</span>
+                                            <span>
+                                                @if(isset($room->size))
+                                                    {{ $room->size }}{{ str_contains($room->size, 'x') ? ' m' : ' m²' }}
+                                                @else
+                                                    {{ $room->capacity >= 4 ? 25 : 15 }} m²
+                                                @endif
+                                            </span>
                                         </span>
                                         <span class="flex items-center gap-1 bg-gray-50 border border-gray-100 px-2 py-1 rounded">
                                             <span class="material-symbols-outlined text-xs leading-none text-gray-400">king_bed</span>
@@ -249,6 +257,10 @@
                             <div class="flex justify-between text-gray-600 hidden" id="summary-late-checkout-row">
                                 <span>Late Check-out:</span>
                                 <span class="font-semibold text-gray-900" id="summary-late-checkout-amount">RP 0</span>
+                            </div>
+                            <div class="flex justify-between text-gray-600 hidden" id="summary-other-addons-row">
+                                <span>Other Extras:</span>
+                                <span class="font-semibold text-gray-900" id="summary-other-addons-amount">RP 0</span>
                             </div>
                             <div class="flex justify-between text-green-700 hidden" id="summary-discount-row">
                                 <span id="summary-discount-label">Discount (10%):</span>
@@ -435,6 +447,10 @@
                             <span class="text-gray-500">Late Check-out:</span>
                             <strong class="text-gray-900" id="modal-late-checkout-val">Yes</strong>
                         </div>
+                        <div class="flex justify-between py-1 border-b border-gray-200/50 hidden" id="modal-other-addons-row">
+                            <span class="text-gray-500">Other Extras:</span>
+                            <strong class="text-gray-900" id="modal-other-addons-val">Yes</strong>
+                        </div>
                         <div class="flex justify-between py-1 pt-2">
                             <span class="text-sm font-bold text-gray-900">Total Price:</span>
                             <strong class="text-sm text-amber-700" id="modal-total-price">RP 1,001,000</strong>
@@ -487,6 +503,17 @@
                             <span>Transfer Amount:</span>
                             <strong class="text-sm text-amber-700" id="transfer-amount-display">RP 0</strong>
                         </div>
+                    </div>
+
+                    <!-- Note for international guests -->
+                    <div class="bg-blue-50/70 border border-blue-150 rounded-xl p-3.5 text-[11px] text-blue-800 leading-relaxed">
+                        <div class="flex items-center gap-1.5 font-bold text-blue-950 mb-1">
+                            <span class="material-symbols-outlined text-sm">info</span>
+                            <span>Notice for International Guests</span>
+                        </div>
+                        <p class="font-medium text-blue-900">
+                            For international guests or guests who are unable to transfer payment to the provided bank account, payment may be completed upon arrival at Bagus Guest House. To validate the reservation, guests are required to upload proof of arrival, such as a flight ticket or travel itinerary. Reservations will be reviewed and confirmed by the administrator after verification.
+                        </p>
                     </div>
 
                     <!-- File Upload -->

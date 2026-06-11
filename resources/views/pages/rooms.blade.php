@@ -55,7 +55,13 @@
                                 <div class="bg-gray-50 rounded-xl p-2 text-center border border-gray-150/50">
                                     <span class="material-symbols-outlined text-amber-700 text-lg block mb-0.5 select-none">straighten</span>
                                     <span class="text-[9px] text-gray-400 font-bold uppercase block tracking-wider">Size</span>
-                                    <span class="text-xs font-bold text-gray-800 block mt-0.5">{{ $room->capacity >= 4 ? 25 : 9 }} m²</span>
+                                    <span class="text-xs font-bold text-gray-800 block mt-0.5">
+                                        @if(isset($room->size))
+                                            {{ $room->size }}{{ str_contains($room->size, 'x') ? ' m' : ' m²' }}
+                                        @else
+                                            {{ $room->capacity >= 4 ? 25 : 9 }} m²
+                                        @endif
+                                    </span>
                                 </div>
                                 <div class="bg-gray-50 rounded-xl p-2 text-center border border-gray-150/50">
                                     <span class="material-symbols-outlined text-amber-700 text-lg block mb-0.5 select-none">group</span>

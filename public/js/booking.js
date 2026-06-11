@@ -47,6 +47,7 @@ let selectedPaymentMethod = null;
 let breakfastCost = 0;
 let extraBedCost = 0;
 let lateCheckoutCost = 0;
+let otherAddonsCost = 0;
 
 // ── Defensive DOM Helpers ──────────────────────────────────
 function setElText(id, text) {
@@ -248,39 +249,48 @@ window.renderSelectedRooms = function() {
                 ` : ''}
                 
                 <div class="grid grid-cols-1 gap-2 pt-2 border-t border-gray-100/50">
-                    <!-- Guests count -->
-                    <div class="flex items-center justify-between text-xs">
-                        <span class="text-gray-500 font-medium">Guests:</span>
-                        <div class="flex items-center gap-2">
-                            <input type="number" min="1" max="${room.capacity}" value="${room.guests}" 
-                                   onchange="updateRoomGuests(${room.id}, this.value)"
-                                   class="w-16 bg-white border border-gray-200 rounded px-1.5 py-0.5 text-center text-xs focus:outline-none focus:border-amber-700 transition">
-                            <span class="text-[10px] text-gray-400 font-semibold">(Max ${room.capacity})</span>
-                        </div>
-                    </div>
-                    
                     <!-- Addons -->
-                    <div class="flex flex-wrap gap-1.5 mt-1">
-                        <!-- Breakfast -->
-                        <button type="button" onclick="toggleRoomAddon(${room.id}, 'breakfast')" 
-                                class="px-2 py-1 rounded text-[10px] font-bold transition flex items-center gap-1 border cursor-pointer select-none ${room.include_breakfast ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-white border-gray-200 text-gray-500 hover:bg-amber-50/10'}">
-                            <span class="material-symbols-outlined text-xs leading-none">restaurant</span>
-                            <span>Breakfast (+50k)</span>
-                        </button>
-                        
-                        <!-- Extra Bed -->
-                        <button type="button" onclick="toggleRoomAddon(${room.id}, 'extra_bed')" 
-                                class="px-2 py-1 rounded text-[10px] font-bold transition flex items-center gap-1 border cursor-pointer select-none ${room.include_extra_bed ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-white border-gray-200 text-gray-500 hover:bg-amber-50/10'}">
-                            <span class="material-symbols-outlined text-xs leading-none">bed</span>
-                            <span>Extra Bed (+150k)</span>
-                        </button>
-                        
-                        <!-- Late Check-out -->
-                        <button type="button" onclick="toggleRoomAddon(${room.id}, 'late_checkout')" 
-                                class="px-2 py-1 rounded text-[10px] font-bold transition flex items-center gap-1 border cursor-pointer select-none ${room.include_late_checkout ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-white border-gray-200 text-gray-500 hover:bg-amber-50/10'}">
-                            <span class="material-symbols-outlined text-xs leading-none">schedule</span>
-                            <span>Late Out (+100k)</span>
-                        </button>
+                    <div id="selected-room-addons-${room.id}">
+                        ${(function() {
+                            var addonsHtml = '';
+                            if (room.addons_config && room.addons_config.length > 0) {
+                                addonsHtml += `<div class="flex flex-wrap gap-1.5 mt-1">`;
+                                room.addons_config.forEach(function(addon) {
+                                    var isSelected = room.selected_addons && room.selected_addons.indexOf(addon.name) !== -1;
+                                    var btnClass = isSelected 
+                                        ? 'bg-amber-100 border-amber-300 text-amber-800' 
+                                        : 'bg-white border-gray-200 text-gray-500 hover:bg-amber-50/10';
+                                    
+                                    var priceNum = parseInt(addon.price) || 0;
+                                    var priceText = '';
+                                    if (priceNum > 0) {
+                                        if (priceNum >= 1000) {
+                                            priceText = ' (+' + (priceNum / 1000) + 'k)';
+                                        } else {
+                                            priceText = ' (+' + priceNum + ')';
+                                        }
+                                    }
+                                    
+                                    var icon = 'add_circle';
+                                    var lowerName = addon.name.toLowerCase();
+                                    if (lowerName.indexOf('breakfast') !== -1 || lowerName.indexOf('sarapan') !== -1) icon = 'restaurant';
+                                    else if (lowerName.indexOf('bed') !== -1 || lowerName.indexOf('kasur') !== -1) icon = 'bed';
+                                    else if (lowerName.indexOf('checkout') !== -1 || lowerName.indexOf('check-out') !== -1 || lowerName.indexOf('late') !== -1) icon = 'schedule';
+                                    else if (lowerName.indexOf('spa') !== -1 || lowerName.indexOf('massage') !== -1) icon = 'spa';
+
+                                    addonsHtml += `
+                                        <button type="button" onclick="toggleRoomCustomAddon(${room.id}, '${addon.name.replace(/'/g, "\\'")}')" 
+                                                title="${addon.description || ''}"
+                                                class="px-2 py-1 rounded text-[10px] font-bold transition flex items-center gap-1 border cursor-pointer select-none ${btnClass}">
+                                            <span class="material-symbols-outlined text-xs leading-none">${icon}</span>
+                                            <span>${addon.name}${priceText}</span>
+                                        </button>
+                                    `;
+                                });
+                                addonsHtml += `</div>`;
+                            }
+                            return addonsHtml;
+                        })()}
                     </div>
                 </div>
             </div>
@@ -312,19 +322,27 @@ window.selectRoom = function(roomId) {
             // Already selected, toggle it off
             selectedRooms.splice(existingIndex, 1);
         } else {
-            // Select it, default guests to top widget guests or clamped to capacity
-            var defaultGuests = Math.min(parseInt(document.getElementById('guests-input').value) || 2, capacity);
+            // Select it, default guests to capacity
+            var defaultGuests = capacity;
             var isBooked = bookedRoomIdsMap.hasOwnProperty(roomId);
+            
+            var rawAddons = card.getAttribute('data-room-addons') || '[]';
+            var addonsConfig = [];
+            try {
+                addonsConfig = JSON.parse(rawAddons) || [];
+            } catch(e) {
+                console.error('Error parsing addons JSON:', e);
+            }
+
             selectedRooms.push({
                 id: roomId,
                 name: name,
                 price: price,
                 capacity: capacity,
                 type: type,
-                guests: Math.max(1, defaultGuests),
-                include_breakfast: false,
-                include_extra_bed: false,
-                include_late_checkout: false,
+                guests: defaultGuests,
+                addons_config: addonsConfig,
+                selected_addons: [],
                 is_available: !isBooked,
                 booked_until: isBooked ? bookedRoomIdsMap[roomId].check_out_formatted : null
             });
@@ -368,15 +386,36 @@ window.toggleRoomAddon = function(roomId, addonKey) {
     try {
         var room = selectedRooms.find(function(r) { return r.id === roomId; });
         if (room) {
-            if (addonKey === 'breakfast') room.include_breakfast = !room.include_breakfast;
-            else if (addonKey === 'extra_bed') room.include_extra_bed = !room.include_extra_bed;
-            else if (addonKey === 'late_checkout') room.include_late_checkout = !room.include_late_checkout;
-            
+            var standardName = '';
+            if (addonKey === 'breakfast') standardName = 'Breakfast';
+            else if (addonKey === 'extra_bed') standardName = 'Extra Bed';
+            else if (addonKey === 'late_checkout') standardName = 'Late Check-out';
+
+            if (standardName) {
+                window.toggleRoomCustomAddon(roomId, standardName);
+            }
+        }
+    } catch (err) {
+        console.error('Error in toggleRoomAddon:', err);
+    }
+};
+
+window.toggleRoomCustomAddon = function(roomId, addonName) {
+    try {
+        var room = selectedRooms.find(function(r) { return r.id === roomId; });
+        if (room) {
+            if (!room.selected_addons) room.selected_addons = [];
+            var idx = room.selected_addons.indexOf(addonName);
+            if (idx !== -1) {
+                room.selected_addons.splice(idx, 1);
+            } else {
+                room.selected_addons.push(addonName);
+            }
             window.renderSelectedRooms();
             recalculatePricing();
         }
     } catch (err) {
-        console.error('Error in toggleRoomAddon:', err);
+        console.error('Error in toggleRoomCustomAddon:', err);
     }
 };
 
@@ -666,19 +705,40 @@ function recalculatePricing() {
         breakfastCost = 0;
         extraBedCost = 0;
         lateCheckoutCost = 0;
+        var otherAddonsCost = 0;
 
         selectedRooms.forEach(function(room) {
             var roomNights = room.has_custom_dates ? room.nights : nights;
             subtotal += room.price * roomNights;
 
-            if (room.include_breakfast) {
-                breakfastCost += 50000 * room.guests * roomNights;
-            }
-            if (room.include_extra_bed) {
-                extraBedCost += 150000 * roomNights;
-            }
-            if (room.include_late_checkout) {
-                lateCheckoutCost += 100000;
+            if (room.selected_addons && room.selected_addons.length > 0) {
+                room.selected_addons.forEach(function(addonName) {
+                    var addon = room.addons_config.find(function(a) { return a.name === addonName; });
+                    if (addon) {
+                        var price = parseInt(addon.price) || 0;
+                        var type = addon.type || 'flat_fee';
+                        var addonCost = 0;
+
+                        if (type === 'per_guest_per_night') {
+                            addonCost = price * room.guests * roomNights;
+                        } else if (type === 'per_night') {
+                            addonCost = price * roomNights;
+                        } else {
+                            addonCost = price;
+                        }
+
+                        var lowerName = addonName.toLowerCase();
+                        if (lowerName.indexOf('breakfast') !== -1 || lowerName.indexOf('sarapan') !== -1) {
+                            breakfastCost += addonCost;
+                        } else if (lowerName.indexOf('extra bed') !== -1 || lowerName.indexOf('kasur') !== -1) {
+                            extraBedCost += addonCost;
+                        } else if (lowerName.indexOf('late check') !== -1 || lowerName.indexOf('late out') !== -1) {
+                            lateCheckoutCost += addonCost;
+                        } else {
+                            otherAddonsCost += addonCost;
+                        }
+                    }
+                });
             }
         });
 
@@ -708,7 +768,15 @@ function recalculatePricing() {
             setElClass('summary-late-checkout-row', 'add', 'hidden');
         }
 
-        var extrasTotal = breakfastCost + extraBedCost + lateCheckoutCost;
+        // Other Extras
+        if (otherAddonsCost > 0) {
+            setElText('summary-other-addons-amount', 'RP ' + otherAddonsCost.toLocaleString('id-ID'));
+            setElClass('summary-other-addons-row', 'remove', 'hidden');
+        } else {
+            setElClass('summary-other-addons-row', 'add', 'hidden');
+        }
+
+        var extrasTotal = breakfastCost + extraBedCost + lateCheckoutCost + otherAddonsCost;
 
         if (discountPercent > 0) {
             discountAmount = Math.round(subtotal * (discountPercent / 100));
@@ -848,10 +916,40 @@ function submitBooking() {
     selectedRooms.forEach(function(room, index) {
         var roomNights = room.has_custom_dates ? room.nights : nights;
         var roomSubtotal = room.price * roomNights;
-        var roomBreakfast = room.include_breakfast ? (50000 * room.guests * roomNights) : 0;
-        var roomExtraBed = room.include_extra_bed ? (150000 * roomNights) : 0;
-        var roomLateOut = room.include_late_checkout ? 100000 : 0;
-        var roomExtras = roomBreakfast + roomExtraBed + roomLateOut;
+        var roomExtras = 0;
+        var hasBreakfast = false;
+        var hasExtraBed = false;
+        var hasLateOut = false;
+
+        if (room.selected_addons && room.selected_addons.length > 0) {
+            room.selected_addons.forEach(function(addonName) {
+                var addon = room.addons_config.find(function(a) { return a.name === addonName; });
+                if (addon) {
+                    var price = parseInt(addon.price) || 0;
+                    var type = addon.type || 'flat_fee';
+                    var addonCost = 0;
+
+                    if (type === 'per_guest_per_night') {
+                        addonCost = price * room.guests * roomNights;
+                    } else if (type === 'per_night') {
+                        addonCost = price * roomNights;
+                    } else {
+                        addonCost = price;
+                    }
+
+                    roomExtras += addonCost;
+
+                    var lowerName = addonName.toLowerCase();
+                    if (lowerName.indexOf('breakfast') !== -1 || lowerName.indexOf('sarapan') !== -1) {
+                        hasBreakfast = true;
+                    } else if (lowerName.indexOf('extra bed') !== -1 || lowerName.indexOf('kasur') !== -1) {
+                        hasExtraBed = true;
+                    } else if (lowerName.indexOf('late check') !== -1 || lowerName.indexOf('late out') !== -1) {
+                        hasLateOut = true;
+                    }
+                }
+            });
+        }
 
         var roomDiscount = Math.round(roomSubtotal * (discountPercent / 100));
         var roomTaxable = roomSubtotal - roomDiscount + roomExtras;
@@ -860,9 +958,10 @@ function submitBooking() {
 
         formData.append('rooms[' + index + '][room_id]', room.id);
         formData.append('rooms[' + index + '][guests]', room.guests);
-        formData.append('rooms[' + index + '][include_breakfast]', room.include_breakfast ? 1 : 0);
-        formData.append('rooms[' + index + '][include_extra_bed]', room.include_extra_bed ? 1 : 0);
-        formData.append('rooms[' + index + '][late_checkout]', room.include_late_checkout ? 1 : 0);
+        formData.append('rooms[' + index + '][include_breakfast]', hasBreakfast ? 1 : 0);
+        formData.append('rooms[' + index + '][include_extra_bed]', hasExtraBed ? 1 : 0);
+        formData.append('rooms[' + index + '][late_checkout]', hasLateOut ? 1 : 0);
+        formData.append('rooms[' + index + '][addons]', JSON.stringify(room.selected_addons));
         formData.append('rooms[' + index + '][subtotal]', roomSubtotal);
         formData.append('rooms[' + index + '][discount]', roomDiscount);
         formData.append('rooms[' + index + '][tax]', roomTax);
@@ -1064,6 +1163,16 @@ function handleBookingSubmit(e) {
         mLateCheckoutRow.classList.add('hidden');
     }
 
+    var mOtherAddonsRow = document.getElementById('modal-other-addons-row');
+    if (mOtherAddonsRow) {
+        if (otherAddonsCost > 0) {
+            mOtherAddonsRow.classList.remove('hidden');
+            document.getElementById('modal-other-addons-val').textContent = 'Yes (RP ' + otherAddonsCost.toLocaleString('id-ID') + ')';
+        } else {
+            mOtherAddonsRow.classList.add('hidden');
+        }
+    }
+
     document.getElementById('modal-total-price').textContent = 'RP ' + totalAmount.toLocaleString('id-ID');
 
     // Reset file upload state
@@ -1121,8 +1230,11 @@ function initBooking() {
                 checkOutSidebar.min = checkOutInput.min;
             }
 
-            checkInInput.addEventListener('change', handleDateChange);
-            checkOutInput.addEventListener('change', handleDateChange);
+            // Bind Apply Stay button
+            var applyStayBtn = document.getElementById('btn-apply-stay');
+            if (applyStayBtn) {
+                applyStayBtn.addEventListener('click', handleDateChange);
+            }
 
             if (checkInSidebar && checkOutSidebar) {
                 checkInSidebar.addEventListener('change', function() {
@@ -1134,12 +1246,6 @@ function initBooking() {
                     handleDateChange();
                 });
             }
-        }
-
-        var guestsInput = document.getElementById('guests-input');
-        if (guestsInput) {
-            guestsInput.addEventListener('change', recalculatePricing);
-            guestsInput.addEventListener('input', recalculatePricing);
         }
 
         var toggleAvailableOnly = document.getElementById('toggle-available-only');

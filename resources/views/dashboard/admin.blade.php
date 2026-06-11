@@ -476,17 +476,43 @@
                                     </td>
                                     <!-- Room -->
                                     <td class="px-4 py-3">
-                                        <span class="block font-semibold text-gray-700">{{ $booking['room'] }}</span>
-                                        @if ($booking['include_breakfast'] || $booking['include_extra_bed'] || $booking['late_checkout'])
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="font-semibold text-gray-700">{{ $booking['room'] }}</span>
+                                            @if ($booking['room'] !== 'Deleted Room')
+                                                @if (($booking['room_status'] ?? '') === 'dipesan')
+                                                    <span class="bg-blue-50 text-blue-700 border border-blue-150 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                        <span class="w-1 h-1 rounded-full bg-blue-600 animate-pulse"></span>
+                                                        <span>Occupied</span>
+                                                    </span>
+                                                @elseif (($booking['room_status'] ?? '') === 'tersedia')
+                                                    <span class="bg-emerald-50 text-emerald-700 border border-emerald-150 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                        <span class="w-1 h-1 rounded-full bg-emerald-600"></span>
+                                                        <span>Vacant</span>
+                                                    </span>
+                                                @else
+                                                    <span class="bg-red-50 text-red-700 border border-red-150 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                        <span class="w-1 h-1 rounded-full bg-red-600"></span>
+                                                        <span>Maintenance</span>
+                                                    </span>
+                                                @endif
+                                            @endif
+                                        </div>
+                                        @if ($booking['include_breakfast'] || $booking['include_extra_bed'] || $booking['late_checkout'] || (isset($booking['addons']) && is_array($booking['addons']) && count($booking['addons']) > 0))
                                             <div class="flex flex-wrap gap-1 mt-1">
-                                                @if ($booking['include_breakfast'])
-                                                    <span class="bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-extrabold uppercase px-1 py-0.5 rounded">Breakfast</span>
-                                                @endif
-                                                @if ($booking['include_extra_bed'])
-                                                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[8px] font-extrabold uppercase px-1 py-0.5 rounded">Extra Bed</span>
-                                                @endif
-                                                @if ($booking['late_checkout'])
-                                                    <span class="bg-purple-50 text-purple-700 border border-purple-100 text-[8px] font-extrabold uppercase px-1 py-0.5 rounded">Late CO</span>
+                                                @if (isset($booking['addons']) && is_array($booking['addons']) && count($booking['addons']) > 0)
+                                                    @foreach ($booking['addons'] as $addonName)
+                                                        <span class="bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded">{{ $addonName }}</span>
+                                                    @endforeach
+                                                @else
+                                                    @if ($booking['include_breakfast'])
+                                                        <span class="bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-extrabold uppercase px-1 py-0.5 rounded">Breakfast</span>
+                                                    @endif
+                                                    @if ($booking['include_extra_bed'])
+                                                        <span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[8px] font-extrabold uppercase px-1 py-0.5 rounded">Extra Bed</span>
+                                                    @endif
+                                                    @if ($booking['late_checkout'])
+                                                        <span class="bg-purple-50 text-purple-700 border border-purple-100 text-[8px] font-extrabold uppercase px-1 py-0.5 rounded">Late CO</span>
+                                                    @endif
                                                 @endif
                                             </div>
                                         @endif
@@ -515,7 +541,7 @@
                                     </td>
                                     <!-- Actions -->
                                     <td class="px-4 py-3 text-right">
-                                        <div class="flex items-center justify-end gap-1">
+                                        <div class="flex items-center justify-end gap-1.5">
                                             @if ($booking['status'] === 'pending')
                                                 <form action="{{ route('admin.bookings.approve', $booking['id']) }}" method="POST" class="inline">
                                                     @csrf
@@ -529,8 +555,32 @@
                                                         <span class="material-symbols-outlined text-sm font-bold leading-none" style="color: #ffffff;">close</span>
                                                     </button>
                                                 </form>
+                                            @elseif ($booking['status'] === 'confirmed')
+                                                @if (($booking['room_status'] ?? '') === 'dipesan')
+                                                    <!-- Check Out button -->
+                                                    <form action="{{ route('admin.bookings.checkout', $booking['id']) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 font-bold px-2.5 py-1 rounded transition text-[10px] inline-flex items-center gap-0.5 cursor-pointer select-none shadow-sm" title="Check Out">
+                                                            <span class="material-symbols-outlined text-xs leading-none">logout</span>
+                                                            <span>Check Out</span>
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <!-- Check In button -->
+                                                    <form action="{{ route('admin.bookings.checkin', $booking['id']) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <button type="submit" class="text-white bg-emerald-600 hover:bg-emerald-700 font-bold px-2.5 py-1 rounded transition text-[10px] inline-flex items-center gap-0.5 cursor-pointer select-none shadow-sm" title="Check In">
+                                                            <span class="material-symbols-outlined text-xs leading-none">login</span>
+                                                            <span>Check In</span>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            @elseif ($booking['status'] === 'completed')
+                                                <span class="text-[10px] text-gray-400 font-bold uppercase">Completed</span>
+                                            @elseif ($booking['status'] === 'cancelled')
+                                                <span class="text-[10px] text-rose-500 font-bold uppercase">Cancelled</span>
                                             @else
-                                                <span class="text-[10px] text-gray-400 italic font-semibold">Processed</span>
+                                                <span class="text-[10px] text-red-500 font-bold uppercase">Rejected</span>
                                             @endif
                                         </div>
                                     </td>

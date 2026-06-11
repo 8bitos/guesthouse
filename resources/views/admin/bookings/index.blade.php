@@ -116,17 +116,43 @@
                                 </td>
                                 <!-- Room -->
                                 <td class="px-6 py-4">
-                                    <span class="block font-semibold text-gray-700">{{ $booking->room ? $booking->room->name : 'Deleted Room' }}</span>
-                                    @if ($booking->include_breakfast || $booking->include_extra_bed || $booking->late_checkout)
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="font-semibold text-gray-700">{{ $booking->room ? $booking->room->name : 'Deleted Room' }}</span>
+                                        @if ($booking->room)
+                                            @if ($booking->room->status === 'dipesan')
+                                                <span class="bg-blue-50 text-blue-700 border border-blue-150 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                                                    <span>Occupied</span>
+                                                </span>
+                                            @elseif ($booking->room->status === 'tersedia')
+                                                <span class="bg-emerald-50 text-emerald-700 border border-emerald-150 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                                    <span>Vacant</span>
+                                                </span>
+                                            @else
+                                                <span class="bg-red-50 text-red-700 border border-red-150 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                                                    <span>Maintenance</span>
+                                                </span>
+                                            @endif
+                                        @endif
+                                    </div>
+                                    @if ($booking->include_breakfast || $booking->include_extra_bed || $booking->late_checkout || ($booking->addons && count($booking->addons) > 0))
                                         <div class="flex flex-wrap gap-1 mt-1">
-                                            @if ($booking->include_breakfast)
-                                                <span class="bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded">Sarapan</span>
-                                            @endif
-                                            @if ($booking->include_extra_bed)
-                                                <span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded">Kasur</span>
-                                            @endif
-                                            @if ($booking->late_checkout)
-                                                <span class="bg-purple-50 text-purple-700 border border-purple-100 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded">Late CO</span>
+                                            @if ($booking->addons && count($booking->addons) > 0)
+                                                @foreach ($booking->addons as $addonName)
+                                                    <span class="bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded">{{ $addonName }}</span>
+                                                @endforeach
+                                            @else
+                                                @if ($booking->include_breakfast)
+                                                    <span class="bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded">Breakfast</span>
+                                                @endif
+                                                @if ($booking->include_extra_bed)
+                                                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded">Extra Bed</span>
+                                                @endif
+                                                @if ($booking->late_checkout)
+                                                    <span class="bg-purple-50 text-purple-700 border border-purple-100 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded">Late Out</span>
+                                                @endif
                                             @endif
                                         </div>
                                     @endif
@@ -155,6 +181,27 @@
                                 <!-- Actions -->
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
+                                        <!-- Check-In / Check-Out quick controls -->
+                                        @if ($booking->status === 'confirmed')
+                                            @if ($booking->room && $booking->room->status === 'dipesan')
+                                                <form action="{{ route('admin.bookings.checkout', $booking->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-white bg-blue-650 hover:bg-blue-750 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
+                                                        <span class="material-symbols-outlined text-xs leading-none">logout</span>
+                                                        <span>Check Out</span>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('admin.bookings.checkin', $booking->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-white bg-emerald-650 hover:bg-emerald-755 border border-emerald-755 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
+                                                        <span class="material-symbols-outlined text-xs leading-none">login</span>
+                                                        <span>Check In</span>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
+
                                         <!-- Edit button -->
                                         <a href="{{ route('admin.bookings.edit', $booking->id) }}" class="text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/70 border border-amber-200/50 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 select-none">
                                             <span class="material-symbols-outlined text-xs leading-none">edit</span>

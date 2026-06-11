@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'type', 'price', 'capacity', 'description', 'status', 'image', 'allow_breakfast', 'allow_extra_bed', 'allow_late_checkout'])]
+#[Fillable(['name', 'type', 'price', 'capacity', 'size', 'description', 'status', 'image', 'addons', 'allow_breakfast', 'allow_extra_bed', 'allow_late_checkout'])]
 class Room extends Model
 {
     use HasFactory;
@@ -18,5 +18,15 @@ class Room extends Model
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * The attributes that should be cast.
+     */
+    protected function casts(): array
+    {
+        return [
+            'addons' => 'array',
+        ];
     }
 }

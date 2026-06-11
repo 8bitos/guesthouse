@@ -79,6 +79,7 @@
         <th class="text-center">Breakfast</th>
         <th class="text-center">Extra Bed</th>
         <th class="text-center">Late Check-out</th>
+        <th>Other Add-ons</th>
         <th class="text-right">Subtotal (RP)</th>
         <th class="text-right">Discount (RP)</th>
         <th class="text-right">Tax (RP)</th>
@@ -103,6 +104,25 @@
           <td class="text-center">{{ $booking->include_breakfast ? 'Yes' : 'No' }}</td>
           <td class="text-center">{{ $booking->include_extra_bed ? 'Yes' : 'No' }}</td>
           <td class="text-center">{{ $booking->late_checkout ? 'Yes' : 'No' }}</td>
+          <td>
+            @php
+              $otherAddons = [];
+              if ($booking->addons && is_array($booking->addons)) {
+                  foreach ($booking->addons as $addonName) {
+                      $lowerName = strtolower($addonName);
+                      if (strpos($lowerName, 'breakfast') === false && 
+                          strpos($lowerName, 'sarapan') === false && 
+                          strpos($lowerName, 'extra bed') === false && 
+                          strpos($lowerName, 'kasur') === false && 
+                          strpos($lowerName, 'late check') === false && 
+                          strpos($lowerName, 'late out') === false) {
+                          $otherAddons[] = $addonName;
+                      }
+                  }
+              }
+            @endphp
+            {{ count($otherAddons) > 0 ? implode(', ', $otherAddons) : '-' }}
+          </td>
           <td class="currency-cell text-right">{{ $booking->subtotal }}</td>
           <td class="currency-cell text-right">{{ $booking->discount }}</td>
           <td class="currency-cell text-right">{{ $booking->tax }}</td>
@@ -112,7 +132,7 @@
         </tr>
       @empty
         <tr>
-          <td colspan="19" style="text-align: center; color: #64748b; font-style: italic; padding: 12px;">No records match the selected filters.</td>
+          <td colspan="20" style="text-align: center; color: #64748b; font-style: italic; padding: 12px;">No records match the selected filters.</td>
         </tr>
       @endforelse
     </tbody>
@@ -122,7 +142,7 @@
           <td colspan="8" style="text-align: right; font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">Total Summary</td>
           <td style="text-align: center; font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('nights') }}</td>
           <td style="text-align: center; font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('guests') }}</td>
-          <td colspan="3" style="background-color: #e2e8f0; border-top: 2px solid #b5babf;"></td>
+          <td colspan="4" style="background-color: #e2e8f0; border-top: 2px solid #b5babf;"></td>
           <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('subtotal') }}</td>
           <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('discount') }}</td>
           <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('tax') }}</td>

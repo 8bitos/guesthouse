@@ -86,3 +86,16 @@ test('users can log out', function () {
     $this->assertGuest();
     $response->assertRedirect('/');
 });
+
+test('users cannot register without phone or address', function () {
+    $response = $this->post('/register', [
+        'name' => 'Invalid User',
+        'email' => 'invalid@example.com',
+        'password' => 'Password123!',
+        'password_confirmation' => 'Password123!',
+        'country_code' => '+62',
+    ]);
+
+    $response->assertSessionHasErrors(['phone', 'address']);
+    $this->assertGuest();
+});

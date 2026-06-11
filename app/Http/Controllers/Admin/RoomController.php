@@ -39,12 +39,11 @@ class RoomController extends Controller
             'type' => ['required', 'string', 'in:Standard Double Room,Deluxe Double Room,Budget Double Room,Superior King Room'],
             'price' => ['required', 'numeric', 'min:0'],
             'capacity' => ['required', 'integer', 'min:1'],
+            'size' => ['required', 'string', 'max:50'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:tersedia,dipesan,perbaikan'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'allow_breakfast' => ['nullable', 'boolean'],
-            'allow_extra_bed' => ['nullable', 'boolean'],
-            'allow_late_checkout' => ['nullable', 'boolean'],
+            'addons' => ['nullable', 'array'],
         ]);
 
         $imagePath = null;
@@ -52,17 +51,38 @@ class RoomController extends Controller
             $imagePath = $request->file('image')->store('rooms', 'public');
         }
 
+        $addons = $request->input('addons');
+        if ($addons === null) {
+            $addons = [];
+            if ($request->boolean('allow_breakfast', true)) {
+                $addons[] = ['name' => 'Breakfast', 'price' => 50000, 'description' => 'Enable breakfast addon', 'type' => 'per_guest_per_night'];
+            }
+            if ($request->boolean('allow_extra_bed', true)) {
+                $addons[] = ['name' => 'Extra Bed', 'price' => 150000, 'description' => 'Enable extra bed', 'type' => 'per_night'];
+            }
+            if ($request->boolean('allow_late_checkout', true)) {
+                $addons[] = ['name' => 'Late Check-out', 'price' => 100000, 'description' => 'Enable late check-out', 'type' => 'flat_fee'];
+            }
+        }
+
+        // Determine allow boolean fields based on addons list for backward compatibility with checkbook UI/queries
+        $hasBreakfast = collect($addons)->contains(fn ($a) => stripos($a['name'] ?? '', 'breakfast') !== false);
+        $hasExtraBed = collect($addons)->contains(fn ($a) => stripos($a['name'] ?? '', 'extra bed') !== false);
+        $hasLateCheckout = collect($addons)->contains(fn ($a) => stripos($a['name'] ?? '', 'late check') !== false || stripos($a['name'] ?? '', 'late out') !== false);
+
         Room::create([
             'name' => $request->name,
             'type' => $request->type,
             'price' => $request->price,
             'capacity' => $request->capacity,
+            'size' => $request->size,
             'description' => $request->description,
             'status' => $request->status,
             'image' => $imagePath,
-            'allow_breakfast' => $request->boolean('allow_breakfast'),
-            'allow_extra_bed' => $request->boolean('allow_extra_bed'),
-            'allow_late_checkout' => $request->boolean('allow_late_checkout'),
+            'addons' => $addons,
+            'allow_breakfast' => $hasBreakfast,
+            'allow_extra_bed' => $hasExtraBed,
+            'allow_late_checkout' => $hasLateCheckout,
         ]);
 
         return redirect()->route('admin.rooms.index')->with('success', 'Room created successfully.');
@@ -86,24 +106,44 @@ class RoomController extends Controller
             'type' => ['required', 'string', 'in:Standard Double Room,Deluxe Double Room,Budget Double Room,Superior King Room'],
             'price' => ['required', 'numeric', 'min:0'],
             'capacity' => ['required', 'integer', 'min:1'],
+            'size' => ['required', 'string', 'max:50'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:tersedia,dipesan,perbaikan'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'allow_breakfast' => ['nullable', 'boolean'],
-            'allow_extra_bed' => ['nullable', 'boolean'],
-            'allow_late_checkout' => ['nullable', 'boolean'],
+            'addons' => ['nullable', 'array'],
         ]);
+
+        $addons = $request->input('addons');
+        if ($addons === null) {
+            $addons = [];
+            if ($request->boolean('allow_breakfast', true)) {
+                $addons[] = ['name' => 'Breakfast', 'price' => 50000, 'description' => 'Enable breakfast addon', 'type' => 'per_guest_per_night'];
+            }
+            if ($request->boolean('allow_extra_bed', true)) {
+                $addons[] = ['name' => 'Extra Bed', 'price' => 150000, 'description' => 'Enable extra bed', 'type' => 'per_night'];
+            }
+            if ($request->boolean('allow_late_checkout', true)) {
+                $addons[] = ['name' => 'Late Check-out', 'price' => 100000, 'description' => 'Enable late check-out', 'type' => 'flat_fee'];
+            }
+        }
+
+        // Determine allow boolean fields based on addons list for backward compatibility with checkbook UI/queries
+        $hasBreakfast = collect($addons)->contains(fn ($a) => stripos($a['name'] ?? '', 'breakfast') !== false);
+        $hasExtraBed = collect($addons)->contains(fn ($a) => stripos($a['name'] ?? '', 'extra bed') !== false);
+        $hasLateCheckout = collect($addons)->contains(fn ($a) => stripos($a['name'] ?? '', 'late check') !== false || stripos($a['name'] ?? '', 'late out') !== false);
 
         $roomData = [
             'name' => $request->name,
             'type' => $request->type,
             'price' => $request->price,
             'capacity' => $request->capacity,
+            'size' => $request->size,
             'description' => $request->description,
             'status' => $request->status,
-            'allow_breakfast' => $request->boolean('allow_breakfast'),
-            'allow_extra_bed' => $request->boolean('allow_extra_bed'),
-            'allow_late_checkout' => $request->boolean('allow_late_checkout'),
+            'addons' => $addons,
+            'allow_breakfast' => $hasBreakfast,
+            'allow_extra_bed' => $hasExtraBed,
+            'allow_late_checkout' => $hasLateCheckout,
         ];
 
         if ($request->hasFile('image')) {

@@ -103,7 +103,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8">
                     <!-- Name -->
                     <div class="space-y-1">
-                        <label for="name" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Name</label>
+                        <label for="name" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Name *</label>
                         <div class="relative">
                             <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name"
                                    class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"
@@ -118,7 +118,7 @@
 
                     <!-- E-mail Address -->
                     <div class="space-y-1">
-                        <label for="email" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">E-mail Address</label>
+                        <label for="email" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">E-mail Address *</label>
                         <div class="relative">
                             <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
                                    class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"
@@ -133,7 +133,7 @@
 
                     <!-- Phone -->
                     <div class="space-y-1">
-                        <label for="phone" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
+                        <label for="phone" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Phone Number *</label>
                         <div class="flex gap-2">
                             <select name="country_code" class="w-24 shrink-0 bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-[11px] text-gray-700 font-bold cursor-pointer transition">
                                 @php
@@ -146,7 +146,7 @@
                                 @endforeach
                             </select>
                             <div class="relative flex-1 min-w-0">
-                                <input id="phone" type="text" name="phone" value="{{ old('phone') }}"
+                                <input id="phone" type="text" name="phone" value="{{ old('phone') }}" required
                                        class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"
                                        placeholder="8123456789">
                                 <span class="absolute right-0 bottom-3 text-amber-700 pointer-events-none">
@@ -160,9 +160,9 @@
 
                     <!-- Home Address -->
                     <div class="space-y-1 relative">
-                        <label for="address" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Home Address</label>
+                        <label for="address" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Home Address *</label>
                         <div class="relative">
-                            <input id="address" type="text" name="address" value="{{ old('address') }}" autocomplete="off"
+                            <input id="address" type="text" name="address" value="{{ old('address') }}" autocomplete="off" required
                                    class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"
                                    placeholder="Search and select address (worldwide)..." oninput="searchAddress(this.value)">
                             <!-- Search loader/indicator spinner -->
@@ -184,7 +184,7 @@
 
                     <!-- Password -->
                     <div class="space-y-1">
-                        <label for="password" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Password</label>
+                        <label for="password" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Password *</label>
                         <div class="relative">
                             <input id="password" type="password" name="password" required autocomplete="new-password"
                                    class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"
@@ -199,7 +199,7 @@
 
                     <!-- Confirm Password -->
                     <div class="space-y-1">
-                        <label for="password_confirmation" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Confirm Password</label>
+                        <label for="password_confirmation" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Confirm Password *</label>
                         <div class="relative">
                             <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
                                    class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"

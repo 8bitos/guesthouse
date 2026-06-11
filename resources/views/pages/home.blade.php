@@ -102,7 +102,14 @@
                                 <span class="text-amber-700 font-extrabold text-base">From RP{{ number_format($room->price, 0, ',', '.') }}</span>
                             </div>
                             <div class="flex gap-4 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px] leading-none">straighten</span>{{ $room->capacity >= 4 ? 25 : 9 }} m²</span>
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[13px] leading-none">straighten</span>
+                                    @if(isset($room->size))
+                                        {{ $room->size }}{{ str_contains($room->size, 'x') ? ' m' : ' m²' }}
+                                    @else
+                                        {{ $room->capacity >= 4 ? 25 : 9 }} m²
+                                    @endif
+                                </span>
                                 <span>•</span>
                                 <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px] leading-none">group</span>{{ $room->capacity }} Guests</span>
                             </div>

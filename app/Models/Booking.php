@@ -42,6 +42,7 @@ class Booking extends Model
         'payment_method',
         'payment_proof',
         'status',
+        'addons',
     ];
 
     /**
@@ -82,5 +83,15 @@ class Booking extends Model
     public function childBookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'parent_id');
+    }
+
+    /**
+     * The attributes that should be cast.
+     */
+    protected function casts(): array
+    {
+        return [
+            'addons' => 'array',
+        ];
     }
 }

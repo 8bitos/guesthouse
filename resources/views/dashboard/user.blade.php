@@ -406,6 +406,10 @@
                                 <td style="padding: 3px 0; color: #6b7280;">Late Check-out</td>
                                 <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-late-checkout-amount">RP 0</td>
                             </tr>
+                            <tr id="receipt-other-addons-row" style="display: none;">
+                                <td style="padding: 3px 0; color: #6b7280;">Other Add-ons</td>
+                                <td style="padding: 3px 0; color: #1f2937; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-other-addons-amount">RP 0</td>
+                            </tr>
                             <tr id="receipt-discount-row" style="display: none;">
                                 <td style="padding: 3px 0; color: #16a34a;" id="receipt-discount-label">Discount</td>
                                 <td style="padding: 3px 0; color: #16a34a; font-weight: 600; font-family: monospace; text-align: right;" id="receipt-discount-amount">-RP 0</td>
@@ -557,6 +561,15 @@
                 recLateCheckoutRow.style.display = '';
             } else {
                 recLateCheckoutRow.style.display = 'none';
+            }
+
+            var recOtherAddonsRow = document.getElementById('receipt-other-addons-row');
+            if (booking.other_addons_cost && booking.other_addons_cost != 0) {
+                var oaCost = parseFloat(booking.other_addons_cost);
+                document.getElementById('receipt-other-addons-amount').textContent = 'RP ' + oaCost.toLocaleString('id-ID');
+                recOtherAddonsRow.style.display = '';
+            } else {
+                recOtherAddonsRow.style.display = 'none';
             }
 
             var recDiscountRow = document.getElementById('receipt-discount-row');

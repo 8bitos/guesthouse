@@ -98,6 +98,19 @@ class BookingController extends Controller
             $room['check_in'] = $room['check_in'] ?? $request->input('check_in');
             $room['check_out'] = $room['check_out'] ?? $request->input('check_out');
             $room['nights'] = isset($room['nights']) ? (int) $room['nights'] : (int) $request->input('nights');
+
+            // Default guests count to room capacity if not provided or empty
+            if (empty($room['guests'])) {
+                $roomObj = Room::find($room['room_id']);
+                $room['guests'] = $roomObj ? $roomObj->capacity : 1;
+            }
+
+            // Parse addons if sent as JSON string
+            if (isset($room['addons']) && is_string($room['addons'])) {
+                $room['addons'] = json_decode($room['addons'], true);
+            } else {
+                $room['addons'] = $room['addons'] ?? [];
+            }
         }
         unset($room);
 
@@ -110,6 +123,7 @@ class BookingController extends Controller
             'rooms.*.include_breakfast' => ['boolean'],
             'rooms.*.include_extra_bed' => ['boolean'],
             'rooms.*.late_checkout' => ['boolean'],
+            'rooms.*.addons' => ['nullable'],
             'rooms.*.subtotal' => ['required', 'numeric', 'min:0'],
             'rooms.*.discount' => ['required', 'numeric', 'min:0'],
             'rooms.*.tax' => ['required', 'numeric', 'min:0'],
@@ -232,6 +246,7 @@ class BookingController extends Controller
                 'include_breakfast' => $isBreakfast,
                 'include_extra_bed' => $isExtraBed,
                 'late_checkout' => $isLateCheckout,
+                'addons' => $roomData['addons'] ?? [],
                 'check_in' => $rCheckIn,
                 'check_out' => $rCheckOut,
                 'nights' => $rNights,

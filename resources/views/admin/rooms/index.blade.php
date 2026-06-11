@@ -89,15 +89,15 @@
                                     <td class="px-6 py-4">
                                         @if ($room->status === 'tersedia')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
-                                                Tersedia
+                                                Vacant
                                             </span>
                                         @elseif ($room->status === 'dipesan')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                                                Dipesan
+                                                Occupied
                                             </span>
                                         @else
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-100">
-                                                Perbaikan
+                                                Maintenance
                                             </span>
                                         @endif
                                     </td>

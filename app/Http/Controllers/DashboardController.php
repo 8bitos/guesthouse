@@ -50,17 +50,57 @@ class DashboardController extends Controller
             $breakfastCost = 0;
             $extraBedCost = 0;
             $lateCheckoutCost = 0;
+            $otherAddonsCost = 0;
 
             $allBookings = collect([$booking])->concat($booking->childBookings);
             foreach ($allBookings as $b) {
-                if ($b->include_breakfast) {
-                    $breakfastCost += 50000 * $b->guests * $b->nights;
-                }
-                if ($b->include_extra_bed) {
-                    $extraBedCost += 150000 * $b->nights;
-                }
-                if ($b->late_checkout) {
-                    $lateCheckoutCost += 100000;
+                if ($b->addons && is_array($b->addons) && count($b->addons) > 0) {
+                    $roomAddons = ($b->room && is_array($b->room->addons)) ? $b->room->addons : [];
+                    foreach ($b->addons as $addonName) {
+                        $config = collect($roomAddons)->first(fn ($a) => ($a['name'] ?? '') === $addonName);
+                        if ($config) {
+                            $price = (float) ($config['price'] ?? 0);
+                            $type = $config['type'] ?? 'flat_fee';
+                            $cost = 0;
+                            if ($type === 'per_guest_per_night') {
+                                $cost = $price * $b->guests * $b->nights;
+                            } elseif ($type === 'per_night') {
+                                $cost = $price * $b->nights;
+                            } else {
+                                $cost = $price;
+                            }
+
+                            $lowerName = strtolower($addonName);
+                            if (strpos($lowerName, 'breakfast') !== false || strpos($lowerName, 'sarapan') !== false) {
+                                $breakfastCost += $cost;
+                            } elseif (strpos($lowerName, 'extra bed') !== false || strpos($lowerName, 'kasur') !== false) {
+                                $extraBedCost += $cost;
+                            } elseif (strpos($lowerName, 'late check') !== false || strpos($lowerName, 'late out') !== false) {
+                                $lateCheckoutCost += $cost;
+                            } else {
+                                $otherAddonsCost += $cost;
+                            }
+                        } else {
+                            $lowerName = strtolower($addonName);
+                            if (strpos($lowerName, 'breakfast') !== false || strpos($lowerName, 'sarapan') !== false) {
+                                $breakfastCost += 50000 * $b->guests * $b->nights;
+                            } elseif (strpos($lowerName, 'extra bed') !== false || strpos($lowerName, 'kasur') !== false) {
+                                $extraBedCost += 150000 * $b->nights;
+                            } elseif (strpos($lowerName, 'late check') !== false || strpos($lowerName, 'late out') !== false) {
+                                $lateCheckoutCost += 100000;
+                            }
+                        }
+                    }
+                } else {
+                    if ($b->include_breakfast) {
+                        $breakfastCost += 50000 * $b->guests * $b->nights;
+                    }
+                    if ($b->include_extra_bed) {
+                        $extraBedCost += 150000 * $b->nights;
+                    }
+                    if ($b->late_checkout) {
+                        $lateCheckoutCost += 100000;
+                    }
                 }
             }
 
@@ -82,6 +122,7 @@ class DashboardController extends Controller
                 'breakfast_cost' => $breakfastCost,
                 'extra_bed_cost' => $extraBedCost,
                 'late_checkout_cost' => $lateCheckoutCost,
+                'other_addons_cost' => $otherAddonsCost,
                 'payment_method' => $booking->payment_method,
                 'subtotal' => $subtotal,
                 'discount' => $discount,
@@ -125,11 +166,13 @@ class DashboardController extends Controller
                     'invoice_no' => $booking->invoice_no,
                     'guest' => $booking->guest_name,
                     'room' => $booking->room ? $booking->room->name : 'Deleted Room',
+                    'room_status' => $booking->room ? $booking->room->status : 'tersedia',
                     'dates' => date('d M', strtotime($booking->check_in)).' - '.date('d M Y', strtotime($booking->check_out)),
                     'amount' => $booking->total_price,
                     'include_breakfast' => $booking->include_breakfast,
                     'include_extra_bed' => $booking->include_extra_bed,
                     'late_checkout' => $booking->late_checkout,
+                    'addons' => $booking->addons,
                     'status' => $booking->status,
                     'payment' => $booking->status === 'confirmed' ? 'verified' : 'waiting',
                     'payment_proof' => $booking->payment_proof ? asset('storage/'.$booking->payment_proof) : null,
