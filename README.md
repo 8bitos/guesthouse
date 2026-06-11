@@ -100,6 +100,13 @@ Buat tabel-tabel di database dan isi data awal. Anda dapat memilih salah satu da
     - Email: `bagusguesthouse01@gmail.com`
     - Password: `admin1234`
 
+> [!NOTE]
+> **Cara Berpindah Opsi (Reset Database)**:
+> Karena proses *seeding* bersifat akumulatif (menambahkan data baru), jika Anda sebelumnya sudah memakai **Opsi A** dan ingin beralih ke **Opsi B** (kosongan), Anda harus mengosongkan database terlebih dahulu dengan menjalankan perintah `migrate:fresh` agar semua data dummy terhapus total:
+> ```bash
+> php artisan migrate:fresh --seed --class=MinimalSeeder
+> ```
+
 ### 7. Buat Symbolic Link Storage
 Hubungkan folder penyimpanan file upload ke folder public agar bisa diakses oleh browser:
 ```bash
