@@ -545,13 +545,13 @@
                                             @if ($booking['status'] === 'pending')
                                                 <form action="{{ route('admin.bookings.approve', $booking['id']) }}" method="POST" class="inline">
                                                     @csrf
-                                                    <button type="submit" class="text-white rounded shadow transition hover:scale-105 cursor-pointer select-none" title="Approve" style="background-color: #10b981; border: 1px solid #059669; width: 26px; height: 26px; display: inline-flex; justify-content: center; align-items: center;" onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'">
+                                                    <button type="submit" data-loading-text="icon-only" class="text-white rounded shadow transition hover:scale-105 cursor-pointer select-none" title="Approve" style="background-color: #10b981; border: 1px solid #059669; width: 26px; height: 26px; display: inline-flex; justify-content: center; align-items: center;" onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'">
                                                         <span class="material-symbols-outlined text-sm font-bold leading-none" style="color: #ffffff;">check</span>
                                                     </button>
                                                 </form>
                                                 <form action="{{ route('admin.bookings.reject', $booking['id']) }}" method="POST" class="inline">
                                                     @csrf
-                                                    <button type="submit" class="text-white rounded shadow transition hover:scale-105 cursor-pointer select-none" title="Reject" style="background-color: #f43f5e; border: 1px solid #e11d48; width: 26px; height: 26px; display: inline-flex; justify-content: center; align-items: center;" onmouseover="this.style.backgroundColor='#e11d48'" onmouseout="this.style.backgroundColor='#f43f5e'">
+                                                    <button type="submit" data-loading-text="icon-only" class="text-white rounded shadow transition hover:scale-105 cursor-pointer select-none" title="Reject" style="background-color: #f43f5e; border: 1px solid #e11d48; width: 26px; height: 26px; display: inline-flex; justify-content: center; align-items: center;" onmouseover="this.style.backgroundColor='#e11d48'" onmouseout="this.style.backgroundColor='#f43f5e'">
                                                         <span class="material-symbols-outlined text-sm font-bold leading-none" style="color: #ffffff;">close</span>
                                                     </button>
                                                 </form>
@@ -560,7 +560,7 @@
                                                     <!-- Check Out button -->
                                                     <form action="{{ route('admin.bookings.checkout', $booking['id']) }}" method="POST" class="inline">
                                                         @csrf
-                                                        <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 font-bold px-2.5 py-1 rounded transition text-[10px] inline-flex items-center gap-0.5 cursor-pointer select-none shadow-sm" title="Check Out">
+                                                        <button type="submit" data-loading-text="Checking Out..." class="text-white bg-blue-600 hover:bg-blue-700 font-bold px-2.5 py-1 rounded transition text-[10px] inline-flex items-center gap-0.5 cursor-pointer select-none shadow-sm" title="Check Out">
                                                             <span class="material-symbols-outlined text-xs leading-none">logout</span>
                                                             <span>Check Out</span>
                                                         </button>
@@ -569,7 +569,7 @@
                                                     <!-- Check In button -->
                                                     <form action="{{ route('admin.bookings.checkin', $booking['id']) }}" method="POST" class="inline">
                                                         @csrf
-                                                        <button type="submit" class="text-white bg-emerald-600 hover:bg-emerald-700 font-bold px-2.5 py-1 rounded transition text-[10px] inline-flex items-center gap-0.5 cursor-pointer select-none shadow-sm" title="Check In">
+                                                        <button type="submit" data-loading-text="Checking In..." class="text-white bg-emerald-600 hover:bg-emerald-700 font-bold px-2.5 py-1 rounded transition text-[10px] inline-flex items-center gap-0.5 cursor-pointer select-none shadow-sm" title="Check In">
                                                             <span class="material-symbols-outlined text-xs leading-none">login</span>
                                                             <span>Check In</span>
                                                         </button>

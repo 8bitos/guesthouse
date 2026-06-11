@@ -186,7 +186,7 @@
                                             @if ($booking->room && $booking->room->status === 'dipesan')
                                                 <form action="{{ route('admin.bookings.checkout', $booking->id) }}" method="POST" class="inline">
                                                     @csrf
-                                                    <button type="submit" class="text-white bg-blue-650 hover:bg-blue-750 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
+                                                    <button type="submit" data-loading-text="Checking Out..." class="text-white bg-blue-650 hover:bg-blue-750 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
                                                         <span class="material-symbols-outlined text-xs leading-none">logout</span>
                                                         <span>Check Out</span>
                                                     </button>
@@ -194,7 +194,7 @@
                                             @else
                                                 <form action="{{ route('admin.bookings.checkin', $booking->id) }}" method="POST" class="inline">
                                                     @csrf
-                                                    <button type="submit" class="text-white bg-emerald-650 hover:bg-emerald-755 border border-emerald-755 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
+                                                    <button type="submit" data-loading-text="Checking In..." class="text-white bg-emerald-650 hover:bg-emerald-755 border border-emerald-755 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
                                                         <span class="material-symbols-outlined text-xs leading-none">login</span>
                                                         <span>Check In</span>
                                                     </button>
@@ -212,7 +212,7 @@
                                         @if(in_array($booking->status, ['pending', 'confirmed']))
                                             <form action="{{ route('admin.bookings.cancel', $booking->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to cancel this booking?')">
                                                 @csrf
-                                                <button type="submit" class="text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100/70 border border-rose-200/50 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
+                                                <button type="submit" data-loading-text="Cancelling..." class="text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100/70 border border-rose-200/50 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
                                                     <span class="material-symbols-outlined text-xs leading-none">cancel</span>
                                                     <span>Cancel</span>
                                                 </button>
@@ -223,7 +223,7 @@
                                         <form action="{{ route('admin.bookings.destroy', $booking->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to permanently delete this reservation record from the database?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-700 hover:text-red-800 bg-red-50 hover:bg-red-100/70 border border-red-200/50 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
+                                            <button type="submit" data-loading-text="Deleting..." class="text-red-700 hover:text-red-800 bg-red-50 hover:bg-red-100/70 border border-red-200/50 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
                                                 <span class="material-symbols-outlined text-xs leading-none">delete</span>
                                                 <span>Delete</span>
                                             </button>

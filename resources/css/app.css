@@ -56,3 +56,32 @@
 .delay-375 { transition-delay: 375ms; }
 .delay-450 { transition-delay: 450ms; }
 
+/* Top Loading Progress Bar */
+.top-loading-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: #d97706; /* amber-600 */
+    box-shadow: 0 0 8px #d97706, 0 0 4px #b45309;
+    z-index: 99999;
+    width: 0%;
+    pointer-events: none;
+    transition: width 0.3s ease-out, opacity 0.3s ease-in-out;
+}
+.top-loading-bar.animating {
+    animation: topBarProgress 3s cubic-bezier(0.1, 0.8, 0.1, 1) forwards;
+}
+@keyframes topBarProgress {
+    0% { width: 0%; opacity: 1; }
+    50% { width: 70%; opacity: 1; }
+    80% { width: 85%; opacity: 1; }
+    100% { width: 92%; opacity: 1; }
+}
+.top-loading-bar.finished {
+    animation: none;
+    width: 100% !important;
+    opacity: 0;
+    transition: width 0.2s ease-out, opacity 0.3s ease-in-out 0.2s;
+}
+

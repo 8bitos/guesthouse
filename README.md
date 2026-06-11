@@ -77,16 +77,28 @@ php artisan key:generate
 ```
 
 ### 6. Jalankan Migrasi & Seeder Database
-Buat tabel-tabel di database dan isi data dummy default (ini juga akan membuat akun admin default dan menyalin aset gambar kamar default):
-```bash
-php artisan migrate:fresh --seed
-```
-* **Akun Admin Default**:
-  - Email: `bagusguesthouse01@gmail.com`
-  - Password: `admin1234`
-* **Akun Tamu Default**:
-  - Email: `user@guesthouse.com`
-  - Password: `password`
+Buat tabel-tabel di database dan isi data awal. Anda dapat memilih salah satu dari dua opsi seeder di bawah ini:
+
+* **Opsi A: Menggunakan Data Dummy Lengkap (Untuk Testing & Demo)**
+  Mengisi database dengan data awal lengkap (8 tipe kamar, contoh akun tamu, foto galeri default, ikon fasilitas, data CMS, dan 2 data transaksi booking dummy).
+  ```bash
+  php artisan migrate:fresh --seed
+  ```
+  * **Akun Admin Default**:
+    - Email: `bagusguesthouse01@gmail.com`
+    - Password: `admin1234`
+  * **Akun Tamu Default**:
+    - Email: `user@guesthouse.com`
+    - Password: `password`
+
+* **Opsi B: Kosongan (Hanya Membuat Akun Admin / Untuk Production)**
+  Hanya membuat akun administrator utama di database. Data kamar, pesanan, keluhan, dan konten visual galeri dimulai dari kosong agar dapat diinput secara manual oleh pengelola guesthouse.
+  ```bash
+  php artisan migrate:fresh --seed --class=MinimalSeeder
+  ```
+  * **Akun Admin Default**:
+    - Email: `bagusguesthouse01@gmail.com`
+    - Password: `admin1234`
 
 ### 7. Buat Symbolic Link Storage
 Hubungkan folder penyimpanan file upload ke folder public agar bisa diakses oleh browser:
@@ -126,4 +138,4 @@ Aplikasi ini dilengkapi dengan suite pengujian otomatis lengkap menggunakan **Pe
 ```bash
 php artisan test --compact
 ```
-Semua 44 kasus pengujian (mulai dari alur reservasi, autentikasi, manajemen CRUD kamar, hingga pengaduan tiket) akan dieksekusi secara otomatis.
+Semua 50 kasus pengujian (mulai dari alur reservasi, autentikasi, manajemen CRUD kamar, hingga pengaduan tiket) akan dieksekusi secara otomatis.
