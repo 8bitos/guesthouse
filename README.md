@@ -4,6 +4,25 @@ Bagus Guest House adalah aplikasi berbasis web modern yang dirancang untuk menge
 
 ---
 
+> [!IMPORTANT]  
+> **PANDUAN UPDATE / PEMBARUAN APLIKASI (TANPA RESET DATABASE)**  
+> Jika aplikasi sudah digunakan oleh klien dan Anda ingin memperbarui kode aplikasi ke versi terbaru tanpa merusak/menghapus database atau data upload-an mereka, silakan ikuti langkah-langkah berikut:
+> 
+> 1. **Tarik/Timpa File Kode Terbaru**:
+>    - Jalankan `git pull origin main` (atau timpa file kode secara manual).
+>    - *PENTING: Jangan menghapus folder `storage/app/public/` dan file `.env`.*
+> 2. **Jalankan Perintah Pembaruan di Terminal**:
+>    ```bash
+>    composer install --no-dev --optimize-autoloader
+>    npm install
+>    npm run build
+>    php artisan migrate
+>    php artisan optimize:clear
+>    ```
+> 3. **Peringatan Keras**: Jangan sekali-kali menjalankan `php artisan migrate:fresh` atau `db:seed` di server produksi/milik klien karena akan menghapus seluruh data transaksi, user, dan kamar secara permanen.
+
+---
+
 ## Fitur Utama Sistem
 
 1. **Sistem Reservasi Kamar & Proteksi Admin**:
