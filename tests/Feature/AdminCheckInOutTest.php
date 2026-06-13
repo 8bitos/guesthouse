@@ -33,8 +33,8 @@ test('admin can check in a guest and update room status to occupied', function (
 
     $response->assertRedirect();
 
-    // Verify booking status remains confirmed
-    expect($booking->fresh()->status)->toBe('confirmed');
+    // Verify booking status is checked_in
+    expect($booking->fresh()->status)->toBe('checked_in');
 
     // Verify room status is now dipesan (occupied)
     expect($room->fresh()->status)->toBe('dipesan');
@@ -59,7 +59,7 @@ test('admin can check out a guest and update room status to vacant', function ()
         'subtotal' => 1000000,
         'tax' => 100000,
         'total_price' => 1100000,
-        'status' => 'confirmed',
+        'status' => 'checked_in',
     ]);
 
     $response = $this->actingAs($admin)->post(route('admin.bookings.checkout', $booking));

@@ -128,7 +128,11 @@
                                             </div>
                                             <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2">
                                                 <div>
-                                                    @if ($booking['status'] === 'confirmed')
+                                                    @if ($booking['status'] === 'checked_in')
+                                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 animate-pulse">
+                                                            <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span> Checked In
+                                                        </span>
+                                                    @elseif ($booking['status'] === 'confirmed')
                                                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
                                                             <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> Confirmed
                                                         </span>
@@ -590,7 +594,13 @@
             var statusStr = booking.status || 'pending';
             watermark.textContent = statusStr.toUpperCase();
             
-            if (statusStr === 'confirmed') {
+            if (statusStr === 'checked_in') {
+                watermark.style.backgroundColor = '#2563eb';
+                statusBadge.style.backgroundColor = '#dbeafe';
+                statusBadge.style.color = '#1e40af';
+                statusBadge.style.borderColor = '#bfdbfe';
+                statusBadge.innerHTML = '🛎️ Checked In';
+            } else if (statusStr === 'confirmed') {
                 watermark.style.backgroundColor = '#16a34a';
                 statusBadge.style.backgroundColor = '#dcfce7';
                 statusBadge.style.color = '#166534';

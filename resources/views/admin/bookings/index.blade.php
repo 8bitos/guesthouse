@@ -56,6 +56,7 @@
                         <option value="">-- All Statuses --</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="confirmed" {{ request('status') === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                        <option value="checked_in" {{ request('status') === 'checked_in' ? 'selected' : '' }}>Checked In</option>
                         <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
                         <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                         <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
@@ -166,7 +167,9 @@
                                 <td class="px-6 py-4 font-black text-amber-700">RP {{ number_format($booking->total_price, 0, ',', '.') }}</td>
                                 <!-- Status -->
                                 <td class="px-6 py-4">
-                                    @if ($booking->status === 'confirmed')
+                                    @if ($booking->status === 'checked_in')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-blue-50 text-blue-700 border border-blue-200 animate-pulse">Checked In</span>
+                                    @elseif ($booking->status === 'confirmed')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-green-50 text-green-700 border border-green-200">Confirmed</span>
                                     @elseif ($booking->status === 'completed')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-gray-100 text-gray-700 border border-gray-200">Completed</span>
@@ -183,23 +186,21 @@
                                     <div class="flex items-center justify-end gap-2">
                                         <!-- Check-In / Check-Out quick controls -->
                                         @if ($booking->status === 'confirmed')
-                                            @if ($booking->room && $booking->room->status === 'dipesan')
-                                                <form action="{{ route('admin.bookings.checkout', $booking->id) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" data-loading-text="Checking Out..." class="text-white bg-blue-650 hover:bg-blue-750 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
-                                                        <span class="material-symbols-outlined text-xs leading-none">logout</span>
-                                                        <span>Check Out</span>
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <form action="{{ route('admin.bookings.checkin', $booking->id) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" data-loading-text="Checking In..." class="text-white bg-emerald-650 hover:bg-emerald-755 border border-emerald-755 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
-                                                        <span class="material-symbols-outlined text-xs leading-none">login</span>
-                                                        <span>Check In</span>
-                                                    </button>
-                                                </form>
-                                            @endif
+                                            <form action="{{ route('admin.bookings.checkin', $booking->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" data-loading-text="Checking In..." class="text-white bg-emerald-650 hover:bg-emerald-755 border border-emerald-755 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
+                                                    <span class="material-symbols-outlined text-xs leading-none">login</span>
+                                                    <span>Check In</span>
+                                                </button>
+                                            </form>
+                                        @elseif ($booking->status === 'checked_in')
+                                            <form action="{{ route('admin.bookings.checkout', $booking->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" data-loading-text="Checking Out..." class="text-white bg-blue-650 hover:bg-blue-750 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
+                                                    <span class="material-symbols-outlined text-xs leading-none">logout</span>
+                                                    <span>Check Out</span>
+                                                </button>
+                                            </form>
                                         @endif
 
                                         <!-- Edit button -->

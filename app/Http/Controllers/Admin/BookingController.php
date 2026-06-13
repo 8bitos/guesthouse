@@ -79,7 +79,7 @@ class BookingController extends Controller
             'guest_email' => ['required', 'email', 'max:255'],
             'guest_phone' => ['required', 'string', 'max:20'],
             'guest_country' => ['required', 'string', 'max:255'],
-            'status' => ['required', 'in:pending,confirmed,completed,cancelled,rejected'],
+            'status' => ['required', 'in:pending,confirmed,checked_in,completed,cancelled,rejected'],
             'special_requests' => ['nullable', 'string'],
         ]);
 
@@ -97,8 +97,17 @@ class BookingController extends Controller
         $parent->update($updateData);
         $parent->childBookings()->update($updateData);
 
-        // Sync room availability if booking is finalized/cancelled/rejected
-        if (in_array($request->status, ['completed', 'cancelled', 'rejected'])) {
+        // Sync room availability based on status
+        if ($request->status === 'checked_in') {
+            if ($parent->room) {
+                $parent->room->update(['status' => 'dipesan']);
+            }
+            foreach ($parent->childBookings as $child) {
+                if ($child->room) {
+                    $child->room->update(['status' => 'dipesan']);
+                }
+            }
+        } else {
             if ($parent->room) {
                 $parent->room->update(['status' => 'tersedia']);
             }
@@ -151,7 +160,7 @@ class BookingController extends Controller
      */
     public function checkIn(Booking $booking): RedirectResponse
     {
-        $booking->update(['status' => 'confirmed']);
+        $booking->update(['status' => 'checked_in']);
         if ($booking->room) {
             $booking->room->update(['status' => 'dipesan']);
         }

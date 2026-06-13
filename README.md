@@ -100,12 +100,18 @@ Buat tabel-tabel di database dan isi data awal. Anda dapat memilih salah satu da
     - Email: `bagusguesthouse01@gmail.com`
     - Password: `admin1234`
 
+* **Opsi C: Mengimpor dari Dump File (`guesthouse.sql`)**
+  Mengimpor struktur tabel dan seluruh data transaksi, akun, kamar, fasilitas, dan galeri secara utuh dari file database dump `guesthouse.sql` yang ada di root direktori proyek.
+  ```bash
+  php artisan db:seed --class=SqlFileSeeder
+  ```
+
 > [!NOTE]
 > **Cara Berpindah Opsi (Reset Database)**:
-> Karena proses *seeding* bersifat akumulatif (menambahkan data baru), jika Anda sebelumnya sudah memakai **Opsi A** dan ingin beralih ke **Opsi B** (kosongan), Anda harus mengosongkan database terlebih dahulu dengan menjalankan perintah `migrate:fresh` agar semua data dummy terhapus total:
-> ```bash
-> php artisan migrate:fresh --seed --class=MinimalSeeder
-> ```
+> Karena proses *seeding* bersifat akumulatif (menambahkan data baru), jika Anda sebelumnya sudah memakai **Opsi A** atau **Opsi B** dan ingin beralih ke opsi lainnya, Anda harus membersihkan database terlebih dahulu.
+> * Untuk beralih ke **Opsi A** (Dummy Default): `php artisan migrate:fresh --seed`
+> * Untuk beralih ke **Opsi B** (Kosongan Admin): `php artisan migrate:fresh --seed --class=MinimalSeeder`
+> * Untuk beralih ke **Opsi C** (SQL Dump): `php artisan db:seed --class=SqlFileSeeder` (seeder ini otomatis membersihkan tabel lama sebelum melakukan impor).
 
 ### 7. Buat Symbolic Link Storage
 Hubungkan folder penyimpanan file upload ke folder public agar bisa diakses oleh browser:

@@ -121,6 +121,7 @@
                             class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-700 transition">
                         <option value="pending" {{ old('status', $booking->status) === 'pending' ? 'selected' : '' }}>Pending (Waiting payment verification)</option>
                         <option value="confirmed" {{ old('status', $booking->status) === 'confirmed' ? 'selected' : '' }}>Confirmed (Payment verified & stay secured)</option>
+                        <option value="checked_in" {{ old('status', $booking->status) === 'checked_in' ? 'selected' : '' }}>Checked In (Guest currently staying)</option>
                         <option value="completed" {{ old('status', $booking->status) === 'completed' ? 'selected' : '' }}>Completed (Guest check-out finalized)</option>
                         <option value="cancelled" {{ old('status', $booking->status) === 'cancelled' ? 'selected' : '' }}>Cancelled (Booking revoked)</option>
                         <option value="rejected" {{ old('status', $booking->status) === 'rejected' ? 'selected' : '' }}>Rejected (Payment proof invalid/declined)</option>

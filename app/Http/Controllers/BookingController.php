@@ -36,7 +36,7 @@ class BookingController extends Controller
         $checkOut = $request->query('check_out');
 
         // Find bookings that overlap with this range and are active
-        $bookings = Booking::whereIn('status', ['pending', 'confirmed'])
+        $bookings = Booking::whereIn('status', ['pending', 'confirmed', 'checked_in'])
             ->where('check_in', '<', $checkOut)
             ->where('check_out', '>', $checkIn)
             ->get();
@@ -162,7 +162,7 @@ class BookingController extends Controller
             $rCheckOut = $roomData['check_out'];
             $rRoomId = $roomData['room_id'];
 
-            $roomOverlapping = Booking::whereIn('status', ['pending', 'confirmed'])
+            $roomOverlapping = Booking::whereIn('status', ['pending', 'confirmed', 'checked_in'])
                 ->where('check_in', '<', $rCheckOut)
                 ->where('check_out', '>', $rCheckIn)
                 ->where('room_id', $rRoomId)
