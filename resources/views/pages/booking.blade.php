@@ -23,7 +23,7 @@
     <section class="bg-gray-900 text-white py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left">
             <h1 class="text-3xl sm:text-4xl font-bold">Book Your Luxury Stay</h1>
-            <p class="text-gray-400 text-sm mt-1 sm:text-base">Secure your reservation at Bagus Guest House, Kintamani.</p>
+            <p class="text-gray-400 text-sm mt-1 sm:text-base">Secure your reservation at Bagus Guest House, Kuta.</p>
         </div>
     </section>
 
@@ -134,7 +134,7 @@
                                         </span>
                                     </div>
                                     <p class="text-xs text-gray-500 leading-relaxed">
-                                        {{ $room->description ?? 'Beautiful luxury room offering stunning scenery, modern amenities, and ultimate comfort in Kintamani.' }}
+                                        {{ $room->description ?? 'Beautiful luxury room offering stunning scenery, modern amenities, and ultimate comfort in Kuta.' }}
                                     </p>
                                     
                                     <!-- Badges -->
@@ -326,7 +326,7 @@
                         <!-- Agreement Checkbox -->
                         <label class="flex items-start gap-2 cursor-pointer select-none text-[10px] text-gray-500 leading-tight">
                             <input type="checkbox" required class="mt-0.5 w-3.5 h-3.5 border border-gray-300 rounded text-amber-700 focus:ring-amber-500">
-                            <span>I agree to the reservation terms, guest capacity restrictions, and Kintamani Guesthouse booking regulations.</span>
+                            <span>I agree to the reservation terms, guest capacity restrictions, and Kuta Guesthouse booking regulations.</span>
                         </label>
 
                         <!-- Booking Availability Alert Hint -->
@@ -577,7 +577,7 @@
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; border-bottom: 1px solid #f3f4f6;">
                             <div>
                                 <div style="font-size: 13px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.2;">Bagus Guest House</div>
-                                <div style="font-size: 10px; color: #9ca3af; margin-top: 2px;">Kintamani, Bali &bull; +62 821-6991-1168</div>
+                                <div style="font-size: 10px; color: #9ca3af; margin-top: 2px;">Kuta, Bali &bull; +62 821-6991-1168</div>
                             </div>
                             <span id="receipt-status-badge" style="background-color: #fef9c3; color: #854d0e; border: 1px solid #fde68a; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 999px; white-space: nowrap;">⏳ Pending</span>
                         </div>

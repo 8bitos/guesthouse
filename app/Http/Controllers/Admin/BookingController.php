@@ -160,12 +160,21 @@ class BookingController extends Controller
      */
     public function checkIn(Booking $booking): RedirectResponse
     {
-        $booking->update(['status' => 'checked_in']);
-        if ($booking->room) {
-            $booking->room->update(['status' => 'dipesan']);
+        $parent = $booking->parent_id ? $booking->parentBooking : $booking;
+
+        $parent->update(['status' => 'checked_in']);
+        if ($parent->room) {
+            $parent->room->update(['status' => 'dipesan']);
         }
 
-        return redirect()->back()->with('success', 'Guest checked in successfully. Room is now Occupied.');
+        foreach ($parent->childBookings as $child) {
+            $child->update(['status' => 'checked_in']);
+            if ($child->room) {
+                $child->room->update(['status' => 'dipesan']);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Guest checked in successfully. Rooms are now Occupied.');
     }
 
     /**
@@ -173,11 +182,20 @@ class BookingController extends Controller
      */
     public function checkOut(Booking $booking): RedirectResponse
     {
-        $booking->update(['status' => 'completed']);
-        if ($booking->room) {
-            $booking->room->update(['status' => 'tersedia']);
+        $parent = $booking->parent_id ? $booking->parentBooking : $booking;
+
+        $parent->update(['status' => 'completed']);
+        if ($parent->room) {
+            $parent->room->update(['status' => 'tersedia']);
         }
 
-        return redirect()->back()->with('success', 'Guest checked out successfully. Room is now Vacant.');
+        foreach ($parent->childBookings as $child) {
+            $child->update(['status' => 'completed']);
+            if ($child->room) {
+                $child->room->update(['status' => 'tersedia']);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Guest checked out successfully. Rooms are now Vacant.');
     }
 }

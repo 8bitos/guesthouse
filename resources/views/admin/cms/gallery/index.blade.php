@@ -23,7 +23,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-bold">Manage Photo Gallery</h1>
-                <p class="text-gray-400 text-sm mt-1">Upload and manage the photo slideshow displayed in Kintamani gallery.</p>
+                <p class="text-gray-400 text-sm mt-1">Upload and manage the photo slideshow displayed in Kuta gallery.</p>
             </div>
             <a href="{{ route('admin.cms.gallery.create') }}" class="inline-block bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition text-center shrink-0">
                 + Upload Photo
@@ -81,7 +81,7 @@
                 <div class="p-12 text-center">
                     <span class="material-symbols-outlined text-gray-400 text-5xl">image_search</span>
                     <h3 class="text-lg font-bold text-gray-700 mt-4">No photos uploaded</h3>
-                    <p class="text-gray-500 text-sm mt-1 mb-6">Upload photos of your rooms, cafe, or Kintamani scenery.</p>
+                    <p class="text-gray-500 text-sm mt-1 mb-6">Upload photos of your rooms, cafe, or Kuta scenery.</p>
                     <a href="{{ route('admin.cms.gallery.create') }}" class="inline-block bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-lg font-semibold transition">
                         + Upload First Photo
                     </a>

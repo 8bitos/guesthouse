@@ -53,7 +53,7 @@
             
             <h1 class="text-3xl font-extrabold mb-4">Guesthouse System</h1>
             <p class="text-sm text-amber-100/80 max-w-xs leading-relaxed">
-                Log in to check room availability, manage bookings, and communicate with Kintamani guest services.
+                Log in to check room availability, manage bookings, and communicate with Kuta guest services.
             </p>
         </div>
 

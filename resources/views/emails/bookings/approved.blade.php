@@ -145,7 +145,7 @@
             <!-- Header -->
             <div class="header">
                 <h1>Bagus Guest House</h1>
-                <p>Kintamani, Bali &bull; Reservation Confirmed</p>
+                <p>Kuta, Bali &bull; Reservation Confirmed</p>
             </div>
 
             <!-- Content -->
@@ -244,7 +244,7 @@
             <!-- Footer -->
             <div class="footer">
                 <p>&copy; {{ date('Y') }} Bagus Guest House. All rights reserved.</p>
-                <p>Jalan Raya Penelokan, Kintamani, Bali, Indonesia</p>
+                <p>Jl. Majapahit Gg. Muria, Kuta, Bali, Indonesia</p>
             </div>
         </div>
     </div>

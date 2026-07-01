@@ -33,28 +33,51 @@
                         <span class="material-symbols-outlined text-amber-700 font-bold select-none">edit_note</span>
                         Send Us a Message
                     </h2>
-                    <form class="space-y-4" onsubmit="event.preventDefault(); alert('Message sent successfully!');">
+                    <form action="{{ route('contact.send') }}" method="POST" class="space-y-4">
+                        @csrf
+
+                        @if (session('success'))
+                            <div class="p-4 text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2" role="alert">
+                                <span class="material-symbols-outlined text-emerald-700 text-lg leading-none select-none">check_circle</span>
+                                <span>{{ session('success') }}</span>
+                            </div>
+                        @endif
+
+                        @if ($errors->any())
+                            <div class="p-4 text-sm text-rose-800 bg-rose-50 border border-rose-200 rounded-lg flex flex-col gap-1.5" role="alert">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-rose-700 text-lg leading-none select-none">error</span>
+                                    <span class="font-bold">Please correct the following errors:</span>
+                                </div>
+                                <ul class="list-disc list-inside text-xs pl-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <div>
                             <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Full Name</label>
-                            <input type="text" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-750 focus:ring-2 focus:ring-amber-500/10 text-sm font-medium transition duration-200" placeholder="Your name" required>
+                            <input type="text" name="name" value="{{ old('name') }}" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-750 focus:ring-2 focus:ring-amber-500/10 text-sm font-medium transition duration-200" placeholder="Your name" required>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Email Address</label>
-                                <input type="email" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-750 focus:ring-2 focus:ring-amber-500/10 text-sm font-medium transition duration-200" placeholder="your@email.com" required>
+                                <input type="email" name="email" value="{{ old('email') }}" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-750 focus:ring-2 focus:ring-amber-500/10 text-sm font-medium transition duration-200" placeholder="your@email.com" required>
                             </div>
                             <div>
                                 <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Phone Number</label>
-                                <input type="tel" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-750 focus:ring-2 focus:ring-amber-500/10 text-sm font-medium transition duration-200" placeholder="+62 XXX-XXXX-XXXX" required>
+                                <input type="tel" name="phone" value="{{ old('phone') }}" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-750 focus:ring-2 focus:ring-amber-500/10 text-sm font-medium transition duration-200" placeholder="+62 XXX-XXXX-XXXX" required>
                             </div>
                         </div>
                         <div>
                             <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Subject</label>
-                            <input type="text" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-750 focus:ring-2 focus:ring-amber-500/10 text-sm font-medium transition duration-200" placeholder="Booking / Tour Inquiry" required>
+                            <input type="text" name="subject" value="{{ old('subject') }}" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-750 focus:ring-2 focus:ring-amber-500/10 text-sm font-medium transition duration-200" placeholder="Booking / Tour Inquiry" required>
                         </div>
                         <div>
                             <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Message</label>
-                            <textarea class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-750 focus:ring-2 focus:ring-amber-500/10 h-28 text-sm font-medium transition duration-200 resize-none" placeholder="Your message details..."></textarea>
+                            <textarea name="message" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-750 focus:ring-2 focus:ring-amber-500/10 h-28 text-sm font-medium transition duration-200 resize-none" placeholder="Your message details..." required>{{ old('message') }}</textarea>
                         </div>
                         <button type="submit" class="w-full bg-amber-700 hover:bg-amber-800 text-white py-2.5 rounded-lg font-bold shadow-sm hover:shadow-amber-800/10 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 text-sm">
                             Send Message

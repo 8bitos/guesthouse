@@ -71,7 +71,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 reveal">
                 <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Our Rooms & Villas</h2>
-                <p class="text-sm font-semibold text-amber-700 uppercase tracking-wider">Choose your perfect Kintamani accommodation</p>
+                <p class="text-sm font-semibold text-amber-700 uppercase tracking-wider">Choose your perfect Kuta accommodation</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -96,7 +96,7 @@
                         <div class="p-6">
                             <h3 class="text-lg font-extrabold text-gray-900 mb-2 group-hover:text-amber-700 transition duration-200">{{ $room->name }}</h3>
                             <p class="text-gray-550 text-xs leading-relaxed mb-4 min-h-[48px]">
-                                {{ Str::limit($room->description ?? 'Spacious room with modern amenities and stunning Kintamani views.', 100) }}
+                                {{ Str::limit($room->description ?? 'Spacious room with modern amenities and stunning Kuta views.', 100) }}
                             </p>
                             <div class="flex justify-between items-center mb-4">
                                 <span class="text-amber-700 font-extrabold text-base">From RP{{ number_format($room->price, 0, ',', '.') }}</span>

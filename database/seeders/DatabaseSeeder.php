@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('admin1234'),
                 'role' => 'admin',
                 'phone' => '+6282169911168',
-                'address' => 'Batur, Kintamani, Bali',
+                'address' => 'Jl. Majapahit Gg. Muria, Kuta, Bali',
             ]
         );
 

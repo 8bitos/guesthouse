@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Mail\BookingApproved;
 use App\Models\Booking;
@@ -302,6 +303,8 @@ Route::get('/gallery', function () {
 Route::get('/contact', function () {
     return view('pages.contact');
 })->name('contact');
+
+Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 
 // Guest-only Routes (Login / Register)
 Route::middleware('guest')->group(function () {

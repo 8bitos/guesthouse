@@ -19,7 +19,7 @@
         <div class="absolute inset-0 bg-black/40"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
             <h1 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight animate-fade-in-up">Our Luxury Rooms & Villas</h1>
-            <p class="text-lg md:text-xl text-gray-300 font-medium max-w-2xl mx-auto animate-fade-in-up-delay">Find your sanctuary in our range of meticulously designed accommodations overlooking Kintamani.</p>
+            <p class="text-lg md:text-xl text-gray-300 font-medium max-w-2xl mx-auto animate-fade-in-up-delay">Find your sanctuary in our range of meticulously designed accommodations overlooking Kuta.</p>
         </div>
     </section>
 

@@ -30,7 +30,7 @@
                         [
                             'icon' => 'directions_car',
                             'title' => 'Mount Batur Jeep Tour',
-                            'desc' => 'Experience a thrilling jeep tour through the Kintamani volcanic landscape. Explore mountain terrain with stunning natural views.',
+                            'desc' => 'Experience a thrilling jeep tour through the Kuta volcanic landscape. Explore mountain terrain with stunning natural views.',
                             'price' => 500000,
                             'duration' => '4-5 hours'
                         ],
