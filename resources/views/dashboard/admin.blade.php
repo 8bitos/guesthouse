@@ -115,6 +115,10 @@
                 <span class="material-symbols-outlined text-base">monitoring</span>
                 Analytics & Trends
             </button>
+            <button onclick="switchTab('rooms-status')" id="tab-rooms-status" class="py-2.5 px-4.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-gray-500 hover:text-gray-700 outline-none transition duration-200 flex items-center gap-2 shrink-0 cursor-pointer select-none">
+                <span class="material-symbols-outlined text-base">meeting_room</span>
+                Room Status
+            </button>
             <button onclick="switchTab('management')" id="tab-management" class="py-2.5 px-4.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-gray-500 hover:text-gray-700 outline-none transition duration-200 flex items-center gap-2 shrink-0 cursor-pointer select-none">
                 <span class="material-symbols-outlined text-base">settings_accessibility</span>
                 Management & CMS
@@ -592,6 +596,130 @@
             </div> <!-- Close Bookings Table container -->
         </div> <!-- Close Booking Requests Tab Content -->
 
+        <!-- Tab Content: Room Status -->
+        <div id="content-rooms-status" class="tab-content hidden space-y-6">
+            <!-- Filter & Toolbar -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4.5 rounded-xl border border-gray-200/80 shadow-sm">
+                <div>
+                    <h2 class="text-sm font-bold text-gray-800">Room Status Grid</h2>
+                    <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-0.5">Real-time overview of vacant, occupied, and maintenance rooms</p>
+                </div>
+                
+                <!-- Filter buttons -->
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="filterRooms('all')" id="btn-filter-all" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-amber-600 text-white shadow-sm border border-amber-700/10 cursor-pointer">
+                        All ({{ count($rooms) }})
+                    </button>
+                    <button onclick="filterRooms('tersedia')" id="btn-filter-tersedia" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-gray-50 text-gray-655 hover:bg-gray-100 hover:text-gray-800 border border-gray-200/60 cursor-pointer">
+                        Vacant / Tidak Laku ({{ $rooms->where('status', 'tersedia')->count() }})
+                    </button>
+                    <button onclick="filterRooms('dipesan')" id="btn-filter-dipesan" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-gray-50 text-gray-655 hover:bg-gray-100 hover:text-gray-800 border border-gray-200/60 cursor-pointer">
+                        Occupied / Laku ({{ $rooms->where('status', 'dipesan')->count() }})
+                    </button>
+                    <button onclick="filterRooms('pemeliharaan')" id="btn-filter-pemeliharaan" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-gray-50 text-gray-655 hover:bg-gray-100 hover:text-gray-800 border border-gray-200/60 cursor-pointer">
+                        Maintenance ({{ $rooms->where('status', 'pemeliharaan')->count() }})
+                    </button>
+                </div>
+            </div>
+
+            <!-- Room Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="rooms-status-grid">
+                @foreach ($rooms as $room)
+                    @php
+                        // Get active booking (checked_in or confirmed)
+                        $activeBkg = $room->bookings->whereIn('status', ['checked_in', 'confirmed'])->sortByDesc('created_at')->first();
+                    @endphp
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden hover:shadow-md transition duration-300 flex flex-col justify-between room-status-card" data-status="{{ $room->status }}">
+                        <!-- Image Container -->
+                        <div class="relative h-40 bg-gray-100 shrink-0">
+                            @if ($room->image)
+                                <img src="{{ asset('storage/' . $room->image) }}" class="w-full h-full object-cover" alt="{{ $room->name }}">
+                            @else
+                                <div class="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-1 bg-amber-50/30">
+                                    <span class="material-symbols-outlined text-3xl">bed</span>
+                                    <span class="text-[10px] font-semibold uppercase">No Photo Available</span>
+                                </div>
+                            @endif
+                            
+                            <!-- Badges -->
+                            <div class="absolute top-3 left-3">
+                                <span class="bg-gray-900/70 backdrop-blur-xs text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded shadow-sm">
+                                    {{ $room->type }}
+                                </span>
+                            </div>
+
+                            <div class="absolute top-3 right-3">
+                                @if ($room->status === 'dipesan')
+                                    <span class="bg-rose-600 text-white text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 animate-pulse">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        <span>OCCUPIED (LAKU)</span>
+                                    </span>
+                                @elseif ($room->status === 'tersedia')
+                                    <span class="bg-emerald-600 text-white text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        <span>VACANT (TIDAK LAKU)</span>
+                                    </span>
+                                @else
+                                    <span class="bg-amber-600 text-white text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        <span>MAINTENANCE</span>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-4 flex-grow flex flex-col justify-between space-y-4">
+                            <div class="space-y-1">
+                                <h3 class="text-sm font-black text-gray-900 tracking-tight">{{ $room->name }}</h3>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                                    {{ $room->size }} m² &bull; {{ $room->capacity }} Guests Max
+                                </p>
+                            </div>
+
+                            <!-- Booking details if occupied/laku -->
+                            @if ($room->status === 'dipesan' && $activeBkg)
+                                <div class="bg-rose-50 border border-rose-100 rounded-lg p-2.5 space-y-1">
+                                    <span class="block text-[8px] font-extrabold text-rose-800 uppercase tracking-wider">Current Occupant</span>
+                                    <div class="flex items-center justify-between text-[10px] text-gray-750 font-semibold gap-2">
+                                        <span class="truncate font-bold text-gray-900">{{ $activeBkg->guest_name }}</span>
+                                        <span class="shrink-0 text-amber-700 bg-amber-50 border border-amber-100 px-1 py-0.2 rounded text-[8px] font-bold">{{ $activeBkg->invoice_no }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-[9px] text-gray-500 font-medium pt-1 border-t border-rose-200/40">
+                                        <span>Stay Dates:</span>
+                                        <span class="font-bold text-rose-700">
+                                            {{ date('d M', strtotime($activeBkg->check_in)) }} - {{ date('d M Y', strtotime($activeBkg->check_out)) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @elseif ($room->status === 'dipesan')
+                                <div class="bg-rose-50 border border-rose-100 rounded-lg p-2.5 flex items-center gap-1.5 text-[10px] text-rose-750 font-semibold">
+                                    <span class="material-symbols-outlined text-xs leading-none">info</span>
+                                    <span>Occupied (Active session in progress)</span>
+                                </div>
+                            @elseif ($room->status === 'tersedia')
+                                <div class="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2.5 flex items-center gap-1.5 text-[10px] text-emerald-750 font-semibold">
+                                    <span class="material-symbols-outlined text-xs leading-none">check_circle</span>
+                                    <span>Ready for new bookings</span>
+                                </div>
+                            @else
+                                <div class="bg-amber-50/50 border border-amber-100 rounded-lg p-2.5 flex items-center gap-1.5 text-[10px] text-amber-750 font-semibold">
+                                    <span class="material-symbols-outlined text-xs leading-none">construction</span>
+                                    <span>Room is undergoing maintenance</span>
+                                </div>
+                            @endif
+
+                            <!-- Price per night -->
+                            <div class="flex justify-between items-center pt-3 border-t border-gray-150/50">
+                                <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider">Price/Night</span>
+                                <span class="text-xs font-black text-amber-700">RP {{ number_format($room->price, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
         <!-- Tab Content: Management & CMS -->
         <div id="content-management" class="tab-content hidden space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -783,7 +911,7 @@
             document.getElementById('content-' + tabId).classList.remove('hidden');
 
             // Reset tab button states
-            const tabButtons = ['analytics', 'requests', 'management'];
+            const tabButtons = ['analytics', 'requests', 'management', 'rooms-status'];
             tabButtons.forEach(btnId => {
                 const btn = document.getElementById('tab-' + btnId);
                 if (btn && btnId === tabId) {
@@ -797,6 +925,30 @@
 
             // Persist tab choice in localStorage
             localStorage.setItem('admin_dashboard_active_tab', tabId);
+        }
+
+        function filterRooms(status) {
+            // Update filter button colors
+            const statuses = ['all', 'tersedia', 'dipesan', 'pemeliharaan'];
+            statuses.forEach(s => {
+                const btn = document.getElementById('btn-filter-' + s);
+                if (btn) {
+                    if (s === status) {
+                        btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-amber-600 text-white shadow-sm border border-amber-700/10 cursor-pointer';
+                    } else {
+                        btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-gray-50 text-gray-655 hover:bg-gray-100 hover:text-gray-800 border border-gray-200/60 cursor-pointer';
+                    }
+                }
+            });
+
+            // Show/hide cards
+            document.querySelectorAll('.room-status-card').forEach(card => {
+                if (status === 'all' || card.getAttribute('data-status') === status) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
         }
 
         // Initialize active tab from localStorage

@@ -106,6 +106,7 @@
                         <label for="name" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Name *</label>
                         <div class="relative">
                             <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name"
+                                   oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
                                    class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"
                                    placeholder="Enter your name">
                             <span class="absolute right-0 bottom-3 text-amber-700 pointer-events-none">
@@ -147,6 +148,7 @@
                             </select>
                             <div class="relative flex-1 min-w-0">
                                 <input id="phone" type="text" name="phone" value="{{ old('phone') }}" required
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                        class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"
                                        placeholder="8123456789">
                                 <span class="absolute right-0 bottom-3 text-amber-700 pointer-events-none">
@@ -187,13 +189,11 @@
                         <label for="password" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Password *</label>
                         <div class="relative">
                             <input id="password" type="password" name="password" required autocomplete="new-password"
-                                   class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"
+                                   class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-10"
                                    placeholder="Enter your password">
-                            <span class="absolute right-0 bottom-3 text-amber-700 pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                            </span>
+                            <button type="button" onclick="togglePasswordVisibility('password', this)" class="absolute right-0 bottom-2 text-gray-400 hover:text-amber-700 transition focus:outline-none cursor-pointer">
+                                <span class="material-symbols-outlined text-lg leading-none">visibility</span>
+                            </button>
                         </div>
                     </div>
 
@@ -202,24 +202,13 @@
                         <label for="password_confirmation" class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Confirm Password *</label>
                         <div class="relative">
                             <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                                   class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"
+                                   class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-10"
                                    placeholder="Confirm password">
-                            <span class="absolute right-0 bottom-3 text-amber-700 pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                            </span>
+                            <button type="button" onclick="togglePasswordVisibility('password_confirmation', this)" class="absolute right-0 bottom-2 text-gray-400 hover:text-amber-700 transition focus:outline-none cursor-pointer">
+                                <span class="material-symbols-outlined text-lg leading-none">visibility</span>
+                            </button>
                         </div>
                     </div>
-                </div>
-
-                <!-- Terms & Agreement checkbox -->
-                <div class="flex items-start pt-2">
-                    <input id="terms" type="checkbox" required
-                           class="h-4 w-4 mt-0.5 rounded border-gray-300 text-amber-700 focus:ring-amber-700 focus:outline-none cursor-pointer">
-                    <label for="terms" class="ml-2.5 text-sm text-gray-500 select-none cursor-pointer leading-tight">
-                        By Signing Up, I Agree with <a href="#" class="text-amber-700 hover:underline">Terms & Conditions</a>
-                    </label>
                 </div>
 
                 <!-- Buttons Layout -->
@@ -327,6 +316,20 @@
                 btn.classList.add('opacity-80', 'cursor-not-allowed');
             }
             return true;
+        }
+
+        function togglePasswordVisibility(inputId, buttonEl) {
+            const input = document.getElementById(inputId);
+            const iconEl = buttonEl.querySelector('.material-symbols-outlined');
+            if (input && iconEl) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    iconEl.textContent = 'visibility_off';
+                } else {
+                    input.type = 'password';
+                    iconEl.textContent = 'visibility';
+                }
+            }
         }
     </script>
 </body>

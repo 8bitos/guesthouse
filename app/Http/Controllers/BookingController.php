@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingApproved;
 use App\Models\Booking;
 use App\Models\Room;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class BookingController extends Controller
@@ -67,6 +72,10 @@ class BookingController extends Controller
                 'error' => 'You cannot perform checkout because you are logged in as an admin.',
                 'message' => 'You cannot perform checkout because you are logged in as an admin.',
             ], 403);
+        }
+
+        if (! $request->has('payment_method')) {
+            $request->merge(['payment_method' => 'Transfer Bank']);
         }
 
         // Normalize request for backward compatibility: if "rooms" is not present, build it from single room inputs
@@ -139,7 +148,14 @@ class BookingController extends Controller
             'check_in' => ['required', 'date', 'after_or_equal:today'],
             'check_out' => ['required', 'date', 'after:check_in'],
             'nights' => ['required', 'integer', 'min:1'],
-            'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'payment_method' => ['required', 'string', 'in:Transfer Bank,Midtrans'],
+            'payment_proof' => [
+                Rule::requiredIf(fn () => $request->input('payment_method') === 'Transfer Bank'),
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
         ]);
 
         // Validate individual check-out dates are after check-in dates
@@ -255,7 +271,7 @@ class BookingController extends Controller
                 'discount' => $roomData['discount'],
                 'tax' => $roomData['tax'],
                 'total_price' => $roomData['total_price'],
-                'payment_method' => 'Transfer Bank',
+                'payment_method' => $request->input('payment_method', 'Transfer Bank'),
                 'payment_proof' => $proofPath,
                 'status' => 'pending',
             ]);
@@ -273,8 +289,19 @@ class BookingController extends Controller
 
         $roomNames = $rooms->pluck('name')->join(', ');
 
+        $snapToken = null;
+        if ($request->input('payment_method') === 'Midtrans') {
+            $snapToken = $this->getMidtransSnapToken($parentBooking, $totalPrice);
+            $parentBooking->update(['snap_token' => $snapToken]);
+
+            foreach ($parentBooking->childBookings as $child) {
+                $child->update(['snap_token' => $snapToken]);
+            }
+        }
+
         return response()->json([
             'success' => true,
+            'snap_token' => $snapToken,
             'booking' => [
                 'id' => $parentBooking->id,
                 'invoice_no' => $parentBooking->invoice_no,
@@ -298,6 +325,152 @@ class BookingController extends Controller
                 'payment_method' => $parentBooking->payment_method,
                 'status' => $parentBooking->status,
             ],
+        ]);
+    }
+
+    /**
+     * Generate Midtrans Snap Token for transaction.
+     */
+    private function getMidtransSnapToken(Booking $booking, float $grossAmount): ?string
+    {
+        $serverKey = config('services.midtrans.server_key');
+
+        if (empty($serverKey) || strpos($serverKey, 'YOUR_SANDBOX_KEY') !== false) {
+            return 'MOCK-SNAP-TOKEN-'.uniqid();
+        }
+
+        try {
+            $payload = [
+                'transaction_details' => [
+                    'order_id' => $booking->invoice_no,
+                    'gross_amount' => (int) $grossAmount,
+                ],
+                'credit_card' => [
+                    'secure' => config('services.midtrans.is_3ds', true),
+                ],
+                'customer_details' => [
+                    'first_name' => $booking->guest_name,
+                    'email' => $booking->guest_email,
+                    'phone' => $booking->guest_phone,
+                ],
+            ];
+
+            $response = Http::withBasicAuth($serverKey, '')
+                ->withHeaders(['Accept' => 'application/json', 'Content-Type' => 'application/json'])
+                ->post('https://app.sandbox.midtrans.com/snap/v1/transactions', $payload);
+
+            if ($response->successful()) {
+                return $response->json('token');
+            }
+
+            Log::error('Midtrans API Error: '.$response->body());
+        } catch (\Exception $e) {
+            Log::error('Midtrans Exception: '.$e->getMessage());
+        }
+
+        return 'MOCK-SNAP-TOKEN-'.uniqid();
+    }
+
+    /**
+     * Handle Midtrans payment notification callback (webhook).
+     */
+    public function midtransCallback(Request $request): JsonResponse
+    {
+        $orderId = $request->input('order_id');
+        $statusCode = $request->input('status_code');
+        $grossAmount = $request->input('gross_amount');
+        $transactionStatus = $request->input('transaction_status');
+        $signatureKey = $request->input('signature_key');
+
+        $serverKey = config('services.midtrans.server_key');
+
+        $localSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
+
+        if (strpos($serverKey, 'YOUR_SANDBOX_KEY') === false && $localSignature !== $signatureKey) {
+            return response()->json(['error' => 'Invalid signature'], 400);
+        }
+
+        $bookings = Booking::where('invoice_no', $orderId)->get();
+        if ($bookings->isEmpty()) {
+            return response()->json(['error' => 'Booking not found'], 404);
+        }
+
+        if (in_array($transactionStatus, ['settlement', 'capture'])) {
+            foreach ($bookings as $booking) {
+                $booking->update([
+                    'status' => 'confirmed',
+                    'midtrans_id' => $request->input('transaction_id'),
+                ]);
+            }
+
+            $primaryBooking = $bookings->first();
+            try {
+                Mail::to($primaryBooking->guest_email)
+                    ->send(new BookingApproved($primaryBooking));
+            } catch (\Exception $e) {
+                Log::error('Error sending email on callback: '.$e->getMessage());
+            }
+        } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+            foreach ($bookings as $booking) {
+                $booking->update([
+                    'status' => 'rejected',
+                ]);
+            }
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Bypass payment verification for testing/simulation (mock bypass).
+     */
+    public function bypassPayment(Booking $booking): JsonResponse
+    {
+        if ($booking->user_id !== Auth::id() && Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $bookings = Booking::where('invoice_no', $booking->invoice_no)->get();
+        foreach ($bookings as $b) {
+            $b->update([
+                'status' => 'confirmed',
+                'midtrans_id' => 'BYPASS-'.strtoupper(uniqid()),
+            ]);
+        }
+
+        $primaryBooking = $bookings->first();
+        try {
+            Mail::to($primaryBooking->guest_email)
+                ->send(new BookingApproved($primaryBooking));
+        } catch (\Exception $e) {
+            Log::error('Error sending email on bypass: '.$e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment has been bypassed successfully. Booking is now Confirmed!',
+        ]);
+    }
+
+    /**
+     * Cancel/reject booking if payment was cancelled.
+     */
+    public function cancelBooking(Booking $booking): JsonResponse
+    {
+        if ($booking->user_id !== Auth::id() && Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $bookings = Booking::where('invoice_no', $booking->invoice_no)->get();
+        foreach ($bookings as $b) {
+            $b->update([
+                'status' => 'rejected',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking has been cancelled.',
         ]);
     }
 }

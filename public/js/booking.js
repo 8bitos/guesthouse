@@ -42,7 +42,8 @@ let discountPercent = 0;
 let discountAmount = 0;
 let taxAmount = 0;
 let totalAmount = 0;
-let selectedPaymentMethod = null;
+let selectedPaymentMethod = 'Transfer Bank';
+let lastBookingId = null;
 
 let breakfastCost = 0;
 let extraBedCost = 0;
@@ -213,38 +214,6 @@ window.renderSelectedRooms = function() {
                 <div class="flex items-center gap-1.5 text-[10px] text-red-600 font-bold bg-red-50 border border-red-100 p-2 rounded-lg">
                     <span class="material-symbols-outlined text-xs leading-none">error</span>
                     <span>Sudah dibooking sampai: ${room.booked_until || '-'}</span>
-                </div>
-                ` : ''}
-
-                <!-- Custom Dates Toggle -->
-                <div class="flex items-center gap-1.5 text-xs text-gray-600 mt-1 select-none border-t border-gray-100/30 pt-1">
-                    <input type="checkbox" id="room-custom-date-toggle-${room.id}" 
-                           ${room.has_custom_dates ? 'checked' : ''} 
-                           onchange="toggleRoomCustomDates(${room.id}, this.checked)"
-                           class="w-3.5 h-3.5 border border-gray-300 rounded text-amber-700 focus:ring-amber-500 cursor-pointer">
-                    <label for="room-custom-date-toggle-${room.id}" class="cursor-pointer font-semibold text-[10px]">Atur tanggal custom untuk kamar ini</label>
-                </div>
-
-                ${room.has_custom_dates ? `
-                <div class="grid grid-cols-2 gap-2 mt-2 bg-amber-50/35 p-2 rounded-lg border border-amber-100/50">
-                    <div>
-                        <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Check In</label>
-                        <input type="date" value="${room.check_in}" 
-                               min="${formatDateValue(new Date())}"
-                               onchange="updateRoomCustomCheckIn(${room.id}, this.value)"
-                               class="w-full bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:border-amber-700 transition">
-                    </div>
-                    <div>
-                        <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Check Out</label>
-                        <input type="date" value="${room.check_out}" 
-                               min="${formatDateValue(new Date(new Date(room.check_in).getTime() + 86400000))}"
-                               onchange="updateRoomCustomCheckOut(${room.id}, this.value)"
-                               class="w-full bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:border-amber-700 transition">
-                    </div>
-                    <div class="col-span-2 text-[9px] text-gray-400 font-bold mt-0.5 flex justify-between">
-                        <span>Duration:</span>
-                        <span class="text-amber-800">${room.nights} night(s)</span>
-                    </div>
                 </div>
                 ` : ''}
                 
@@ -879,6 +848,9 @@ function goToPaymentStep() {
         payBtn.className = 'w-full bg-gray-300 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition flex items-center justify-center gap-2 cursor-not-allowed select-none';
     }
 
+    // Force default payment method
+    selectPaymentMethod('Transfer Bank');
+
     goToStep('payment');
 }
 
@@ -915,10 +887,18 @@ function submitBooking() {
         return;
     }
 
-    var fileInput = document.getElementById('payment-proof-input');
-    if (!fileInput || !fileInput.files[0]) {
-        alert('Please upload your payment transfer receipt first!');
-        return;
+    if (selectedPaymentMethod === 'Transfer Bank') {
+        var fileInput = document.getElementById('payment-proof-input');
+        if (!fileInput || !fileInput.files[0]) {
+            alert('Please upload your payment transfer receipt first!');
+            return;
+        }
+    }
+
+    // Set loader text dynamically
+    var loaderTitle = document.querySelector('#modal-step-processing h3');
+    if (loaderTitle) {
+        loaderTitle.textContent = selectedPaymentMethod === 'Midtrans' ? 'Initiating Online Payment...' : 'Uploading Payment Proof...';
     }
 
     goToStep('processing');
@@ -940,7 +920,10 @@ function submitBooking() {
     formData.append('check_in', checkIn);
     formData.append('check_out', checkOut);
     formData.append('nights', nights);
-    formData.append('payment_proof', fileInput.files[0]);
+    formData.append('payment_method', selectedPaymentMethod);
+    if (selectedPaymentMethod === 'Transfer Bank') {
+        formData.append('payment_proof', fileInput.files[0]);
+    }
 
     // Append rooms array
     selectedRooms.forEach(function(room, index) {
@@ -1024,82 +1007,378 @@ function submitBooking() {
     })
     .then(function(data) {
         var booking = data.booking;
+        lastBookingId = booking.id;
         
-        // Fill receipt data
-        document.getElementById('receipt-invoice-no').textContent = booking.invoice_no;
-        document.getElementById('receipt-date').textContent = booking.date;
-        document.getElementById('receipt-guest-name').textContent = booking.guest_name;
-        document.getElementById('receipt-room-name').textContent = booking.room_name;
-        document.getElementById('receipt-check-in').textContent = formatDateDisplay(booking.check_in);
-        document.getElementById('receipt-check-out').textContent = formatDateDisplay(booking.check_out);
-        document.getElementById('receipt-nights').textContent = booking.nights + ' night(s)';
+        // Populate receipt fields
+        fillReceiptDetails(booking);
         
-        var guestsText = booking.guests + ' guest(s)';
-        document.getElementById('receipt-guests').textContent = guestsText;
-        document.getElementById('receipt-payment-method').textContent = booking.payment_method;
-
-        // Pricing
-        document.getElementById('receipt-subtotal').textContent = 'RP ' + booking.subtotal.toLocaleString('id-ID');
-        
-        // Dynamic extras in receipt
-        var recBreakfastRow = document.getElementById('receipt-breakfast-row');
-        if (booking.include_breakfast && booking.include_breakfast != 0) {
-            var bCost = booking.breakfast_cost !== undefined ? booking.breakfast_cost : 0;
-            document.getElementById('receipt-breakfast-amount').textContent = 'RP ' + bCost.toLocaleString('id-ID');
-            recBreakfastRow.style.display = '';
-        } else {
-            recBreakfastRow.style.display = 'none';
+        // Handle Midtrans Snap Payment Flow
+        if (data.snap_token) {
+            if (data.snap_token.startsWith('MOCK-SNAP-TOKEN-')) {
+                openMockSnapModal(booking.id, booking.invoice_no, booking.total_price);
+            } else {
+                window.snap.pay(data.snap_token, {
+                    onSuccess: function(result) {
+                        updateReceiptToConfirmed(booking);
+                        goToStep('receipt');
+                    },
+                    onPending: function(result) {
+                        updateReceiptToPending(booking);
+                        goToStep('receipt');
+                    },
+                    onError: function(result) {
+                        alert('Payment failed: ' + result.status_message);
+                        cancelBookingOnServer(booking.id);
+                    },
+                    onClose: function() {
+                        cancelBookingOnServer(booking.id);
+                    }
+                });
+            }
+            return;
         }
 
-        var recExtraBedRow = document.getElementById('receipt-extra-bed-row');
-        if (booking.include_extra_bed && booking.include_extra_bed != 0) {
-            var ebCost = booking.extra_bed_cost !== undefined ? booking.extra_bed_cost : 0;
-            document.getElementById('receipt-extra-bed-amount').textContent = 'RP ' + ebCost.toLocaleString('id-ID');
-            recExtraBedRow.style.display = '';
-        } else {
-            recExtraBedRow.style.display = 'none';
-        }
-
-        var recLateCheckoutRow = document.getElementById('receipt-late-checkout-row');
-        if (booking.late_checkout && booking.late_checkout != 0) {
-            var lcCost = booking.late_checkout_cost !== undefined ? booking.late_checkout_cost : 0;
-            document.getElementById('receipt-late-checkout-amount').textContent = 'RP ' + lcCost.toLocaleString('id-ID');
-            recLateCheckoutRow.style.display = '';
-        } else {
-            recLateCheckoutRow.style.display = 'none';
-        }
-
-        var recDiscountRow = document.getElementById('receipt-discount-row');
-        if (booking.discount > 0) {
-            document.getElementById('receipt-discount-label').textContent = 'Discount:';
-            document.getElementById('receipt-discount-amount').textContent = '-RP ' + booking.discount.toLocaleString('id-ID');
-            recDiscountRow.style.display = '';
-        } else {
-            recDiscountRow.style.display = 'none';
-        }
-        
-        document.getElementById('receipt-tax').textContent = 'RP ' + booking.tax.toLocaleString('id-ID');
-        document.getElementById('receipt-total').textContent = 'RP ' + booking.total_price.toLocaleString('id-ID');
-
-        // Force watermark and badge to PENDING
-        var watermark = document.getElementById('receipt-watermark');
-        if (watermark) {
-            watermark.textContent = 'PENDING';
-            watermark.style.backgroundColor = '#ca8a04';
-        }
-        var statusBadge = document.getElementById('receipt-status-badge');
-        if (statusBadge) {
-            statusBadge.style.backgroundColor = '#fef9c3';
-            statusBadge.style.color = '#854d0e';
-            statusBadge.style.borderColor = '#fde68a';
-            statusBadge.innerHTML = '⏳ Pending Verification';
-        }
-
+        // Default Bank Transfer flow
+        updateReceiptToPending(booking);
         goToStep('receipt');
     })
     .catch(function(err) {
         alert('Error: ' + err.message);
         goToStep('payment');
+    });
+}
+
+/**
+ * Handle payment option tabs select.
+ */
+function selectPaymentMethod(method) {
+    selectedPaymentMethod = method;
+    
+    var optionBank = document.getElementById('payment-option-bank');
+    var optionMidtrans = document.getElementById('payment-option-midtrans');
+    var bankSection = document.getElementById('bank-transfer-details');
+    var midtransSection = document.getElementById('midtrans-payment-details');
+    var payBtn = document.getElementById('btn-pay-now');
+    var payBtnText = payBtn ? payBtn.querySelector('span') : null;
+    
+    if (method === 'Transfer Bank') {
+        if (optionBank) {
+            optionBank.className = 'border-2 border-amber-600 bg-amber-50/10 rounded-xl p-3.5 cursor-pointer transition flex items-start gap-3 select-none';
+        }
+        if (optionMidtrans) {
+            optionMidtrans.className = 'border-2 border-gray-200 bg-white rounded-xl p-3.5 cursor-pointer transition flex items-start gap-3 select-none';
+        }
+        
+        if (bankSection) bankSection.classList.remove('hidden');
+        if (midtransSection) midtransSection.classList.add('hidden');
+        
+        var fileInput = document.getElementById('payment-proof-input');
+        if (fileInput && fileInput.files[0]) {
+            if (payBtn) {
+                payBtn.removeAttribute('disabled');
+                payBtn.className = 'w-full bg-amber-700 hover:bg-amber-800 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-700/20 transition flex items-center justify-center gap-2 cursor-pointer select-none';
+            }
+        } else {
+            if (payBtn) {
+                payBtn.setAttribute('disabled', true);
+                payBtn.className = 'w-full bg-gray-300 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition flex items-center justify-center gap-2 cursor-not-allowed select-none';
+            }
+        }
+        
+        if (payBtnText) payBtnText.textContent = 'Submit Payment Proof';
+        
+    } else if (method === 'Midtrans') {
+        if (optionBank) {
+            optionBank.className = 'border-2 border-gray-200 bg-white rounded-xl p-3.5 cursor-pointer transition flex items-start gap-3 select-none';
+        }
+        if (optionMidtrans) {
+            optionMidtrans.className = 'border-2 border-blue-600 bg-blue-50/10 rounded-xl p-3.5 cursor-pointer transition flex items-start gap-3 select-none';
+        }
+        
+        if (bankSection) bankSection.classList.add('hidden');
+        if (midtransSection) midtransSection.classList.remove('hidden');
+        
+        if (payBtn) {
+            payBtn.removeAttribute('disabled');
+            payBtn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-blue-750/20 transition flex items-center justify-center gap-2 cursor-pointer select-none';
+        }
+        
+        if (payBtnText) payBtnText.textContent = 'Pay with Midtrans Sandbox';
+    }
+}
+
+/**
+ * Populate all fields on the receipt printable.
+ */
+function fillReceiptDetails(booking) {
+    document.getElementById('receipt-invoice-no').textContent = booking.invoice_no;
+    document.getElementById('receipt-date').textContent = booking.date;
+    document.getElementById('receipt-guest-name').textContent = booking.guest_name;
+    document.getElementById('receipt-room-name').textContent = booking.room_name;
+    document.getElementById('receipt-check-in').textContent = formatDateDisplay(booking.check_in);
+    document.getElementById('receipt-check-out').textContent = formatDateDisplay(booking.check_out);
+    document.getElementById('receipt-nights').textContent = booking.nights + ' night(s)';
+    
+    var guestsText = booking.guests + ' guest(s)';
+    document.getElementById('receipt-guests').textContent = guestsText;
+    document.getElementById('receipt-payment-method').textContent = booking.payment_method;
+
+    document.getElementById('receipt-subtotal').textContent = 'RP ' + booking.subtotal.toLocaleString('id-ID');
+    
+    var recBreakfastRow = document.getElementById('receipt-breakfast-row');
+    if (booking.include_breakfast && booking.include_breakfast != 0) {
+        var bCost = booking.breakfast_cost !== undefined ? booking.breakfast_cost : 0;
+        document.getElementById('receipt-breakfast-amount').textContent = 'RP ' + bCost.toLocaleString('id-ID');
+        recBreakfastRow.style.display = '';
+    } else {
+        recBreakfastRow.style.display = 'none';
+    }
+
+    var recExtraBedRow = document.getElementById('receipt-extra-bed-row');
+    if (booking.include_extra_bed && booking.include_extra_bed != 0) {
+        var ebCost = booking.extra_bed_cost !== undefined ? booking.extra_bed_cost : 0;
+        document.getElementById('receipt-extra-bed-amount').textContent = 'RP ' + ebCost.toLocaleString('id-ID');
+        recExtraBedRow.style.display = '';
+    } else {
+        recExtraBedRow.style.display = 'none';
+    }
+
+    var recLateCheckoutRow = document.getElementById('receipt-late-checkout-row');
+    if (booking.late_checkout && booking.late_checkout != 0) {
+        var lcCost = booking.late_checkout_cost !== undefined ? booking.late_checkout_cost : 0;
+        document.getElementById('receipt-late-checkout-amount').textContent = 'RP ' + lcCost.toLocaleString('id-ID');
+        recLateCheckoutRow.style.display = '';
+    } else {
+        recLateCheckoutRow.style.display = 'none';
+    }
+
+    var recDiscountRow = document.getElementById('receipt-discount-row');
+    if (booking.discount > 0) {
+        document.getElementById('receipt-discount-label').textContent = 'Discount:';
+        document.getElementById('receipt-discount-amount').textContent = '-RP ' + booking.discount.toLocaleString('id-ID');
+        recDiscountRow.style.display = '';
+    } else {
+        recDiscountRow.style.display = 'none';
+    }
+    
+    document.getElementById('receipt-tax').textContent = 'RP ' + booking.tax.toLocaleString('id-ID');
+    document.getElementById('receipt-total').textContent = 'RP ' + booking.total_price.toLocaleString('id-ID');
+}
+
+/**
+ * Update UI state of receipt block to Paid & Confirmed.
+ */
+function updateReceiptToConfirmed(booking) {
+    var watermark = document.getElementById('receipt-watermark');
+    if (watermark) {
+        watermark.textContent = 'PAID & CONFIRMED';
+        watermark.style.backgroundColor = '#10b981';
+    }
+    var statusBadge = document.getElementById('receipt-status-badge');
+    if (statusBadge) {
+        statusBadge.style.backgroundColor = '#d1fae5';
+        statusBadge.style.color = '#065f46';
+        statusBadge.style.borderColor = '#a7f3d0';
+        statusBadge.innerHTML = '✅ Paid & Confirmed';
+    }
+    
+    var bypassBtn = document.getElementById('btn-bypass-payment');
+    if (bypassBtn) bypassBtn.classList.add('hidden');
+}
+
+/**
+ * Update UI state of receipt block to Pending Verification.
+ */
+function updateReceiptToPending(booking) {
+    var watermark = document.getElementById('receipt-watermark');
+    if (watermark) {
+        watermark.textContent = 'PENDING';
+        watermark.style.backgroundColor = '#ca8a04';
+    }
+    var statusBadge = document.getElementById('receipt-status-badge');
+    if (statusBadge) {
+        statusBadge.style.backgroundColor = '#fef9c3';
+        statusBadge.style.color = '#854d0e';
+        statusBadge.style.borderColor = '#fde68a';
+        statusBadge.innerHTML = '⏳ Pending Verification';
+    }
+    
+    var bypassBtn = document.getElementById('btn-bypass-payment');
+    if (bypassBtn) bypassBtn.classList.remove('hidden');
+}
+
+/**
+ * Open simulation mock snap modal.
+ */
+let currentMockBookingId = null;
+
+function openMockSnapModal(bookingId, invoiceNo, amount) {
+    currentMockBookingId = bookingId;
+    
+    document.getElementById('mock-snap-invoice').textContent = invoiceNo;
+    document.getElementById('mock-snap-amount').textContent = 'RP ' + amount.toLocaleString('id-ID');
+    
+    var modal = document.getElementById('mock-snap-modal');
+    if (modal) modal.classList.remove('hidden');
+    
+    goToStep('payment');
+}
+
+/**
+ * Close simulation mock snap modal.
+ */
+function closeMockSnapModal() {
+    var modal = document.getElementById('mock-snap-modal');
+    if (modal) modal.classList.add('hidden');
+    
+    if (currentMockBookingId) {
+        cancelBookingOnServer(currentMockBookingId);
+    } else {
+        closeModal();
+    }
+}
+
+/**
+ * Simulate payment confirmation inside mock snap modal.
+ */
+function simulateSuccessMockSnap() {
+    if (!currentMockBookingId) return;
+    
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    closeMockSnapModal();
+    goToStep('processing');
+    
+    var loaderTitle = document.querySelector('#modal-step-processing h3');
+    if (loaderTitle) {
+        loaderTitle.textContent = 'Simulating payment confirmation...';
+    }
+    
+    fetch('/booking/' + currentMockBookingId + '/bypass-payment', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        }
+    })
+    .then(function(res) {
+        return res.json().then(function(data) {
+            if (!res.ok) throw new Error(data.error || 'Simulation failed');
+            return data;
+        });
+    })
+    .then(function(data) {
+        var watermark = document.getElementById('receipt-watermark');
+        if (watermark) {
+            watermark.textContent = 'PAID & CONFIRMED';
+            watermark.style.backgroundColor = '#10b981';
+        }
+        var statusBadge = document.getElementById('receipt-status-badge');
+        if (statusBadge) {
+            statusBadge.style.backgroundColor = '#d1fae5';
+            statusBadge.style.color = '#065f46';
+            statusBadge.style.borderColor = '#a7f3d0';
+            statusBadge.innerHTML = '✅ Paid & Confirmed';
+        }
+        
+        var bypassBtn = document.getElementById('btn-bypass-payment');
+        if (bypassBtn) bypassBtn.classList.add('hidden');
+        
+        goToStep('receipt');
+    })
+    .catch(function(err) {
+        alert('Error: ' + err.message);
+        goToStep('receipt');
+    });
+}
+
+/**
+ * Directly bypass payment from receipt view.
+ */
+function bypassPaymentDirectly() {
+    if (!lastBookingId) {
+        alert('No booking ID available to verify.');
+        return;
+    }
+    
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var bypassBtn = document.getElementById('btn-bypass-payment');
+    var originalHtml = bypassBtn.innerHTML;
+    bypassBtn.setAttribute('disabled', true);
+    bypassBtn.innerHTML = '<span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> <span>Checking payment...</span>';
+    
+    fetch('/booking/' + lastBookingId + '/bypass-payment', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        }
+    })
+    .then(function(res) {
+        return res.json().then(function(data) {
+            if (!res.ok) throw new Error(data.error || 'Verification failed');
+            return data;
+        });
+    })
+    .then(function(data) {
+        alert('Payment status verified successfully!');
+        
+        var watermark = document.getElementById('receipt-watermark');
+        if (watermark) {
+            watermark.textContent = 'PAID & CONFIRMED';
+            watermark.style.backgroundColor = '#10b981';
+        }
+        var statusBadge = document.getElementById('receipt-status-badge');
+        if (statusBadge) {
+            statusBadge.style.backgroundColor = '#d1fae5';
+            statusBadge.style.color = '#065f46';
+            statusBadge.style.borderColor = '#a7f3d0';
+            statusBadge.innerHTML = '✅ Paid & Confirmed';
+        }
+        
+        bypassBtn.classList.add('hidden');
+    })
+    .catch(function(err) {
+        alert('Error: ' + err.message);
+    })
+    .finally(function() {
+        bypassBtn.removeAttribute('disabled');
+        bypassBtn.innerHTML = originalHtml;
+    });
+}
+
+/**
+ * Cancel/reject pending booking on server.
+ */
+function cancelBookingOnServer(bookingId) {
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    goToStep('processing');
+    var loaderTitle = document.querySelector('#modal-step-processing h3');
+    if (loaderTitle) {
+        loaderTitle.textContent = 'Cancelling reservation...';
+    }
+    
+    fetch('/booking/' + bookingId + '/cancel', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        }
+    })
+    .then(function(res) {
+        return res.json().then(function(data) {
+            if (!res.ok) throw new Error(data.error || 'Cancellation failed');
+            return data;
+        });
+    })
+    .then(function(data) {
+        alert('Payment cancelled. Your booking has been cancelled.');
+        closeModal();
+    })
+    .catch(function(err) {
+        console.error('Error cancelling booking:', err);
+        closeModal();
     });
 }
 

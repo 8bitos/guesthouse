@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'midtrans/callback',
+        ]);
+
         $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->role === 'admin' ? '/admin/dashboard' : '/');
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -318,7 +318,9 @@ class DashboardController extends Controller
                 ];
             })->values()->toArray();
 
-        $rooms = Room::orderBy('name')->get();
+        $rooms = Room::with(['bookings' => function ($query) {
+            $query->whereIn('status', ['checked_in', 'confirmed']);
+        }])->orderBy('name')->get();
 
         return view('dashboard.admin', compact('user', 'stats', 'recentBookings', 'favoriteRooms', 'monthlyTrends', 'trendsTitle', 'trendsColumnHeader', 'trendFilter', 'guestOrigins', 'rooms'));
     }

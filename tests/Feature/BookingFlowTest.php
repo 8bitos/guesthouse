@@ -348,3 +348,120 @@ test('authenticated pelanggan can book multiple rooms with custom check-in check
     expect($child->check_out)->toBe($customCheckOut2);
     expect($child->nights)->toBe(2);
 });
+
+test('pelanggan can submit a booking request via Midtrans and receive mock snap token', function () {
+    $user = User::factory()->create([
+        'role' => 'pelanggan',
+    ]);
+
+    $room = Room::factory()->create([
+        'status' => 'tersedia',
+        'price' => 1000000,
+    ]);
+
+    $response = $this->actingAs($user)->post('/booking', [
+        'room_id' => $room->id,
+        'guest_name' => 'Midtrans Guest',
+        'guest_email' => 'midtrans@example.com',
+        'guest_phone' => '081234567890',
+        'guest_country' => 'Indonesia',
+        'special_requests' => 'None',
+        'check_in' => now()->format('Y-m-d'),
+        'check_out' => now()->addDay()->format('Y-m-d'),
+        'nights' => 1,
+        'guests' => 2,
+        'subtotal' => 1000000,
+        'discount' => 0,
+        'tax' => 100000,
+        'total_price' => 1100000,
+        'payment_method' => 'Midtrans',
+    ]);
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+    ]);
+
+    $data = $response->json();
+    expect($data['snap_token'])->toStartWith('MOCK-SNAP-TOKEN-');
+
+    $booking = Booking::first();
+    expect($booking->payment_method)->toBe('Midtrans');
+    expect($booking->snap_token)->toBe($data['snap_token']);
+});
+
+test('midtrans callback can confirm booking status', function () {
+    Mail::fake();
+
+    $booking = Booking::factory()->create([
+        'invoice_no' => 'BGH-TEST-CALLBACK-1',
+        'status' => 'pending',
+        'guest_email' => 'callback@example.com',
+        'total_price' => 1000000,
+    ]);
+
+    $response = $this->postJson('/midtrans/callback', [
+        'order_id' => 'BGH-TEST-CALLBACK-1',
+        'status_code' => '200',
+        'gross_amount' => '1000000.00',
+        'transaction_status' => 'settlement',
+        'transaction_id' => 'midtrans-tx-unique-id',
+        'signature_key' => 'mock-sig',
+    ]);
+
+    $response->assertStatus(200);
+    $response->assertJson(['success' => true]);
+
+    $booking->refresh();
+    expect($booking->status)->toBe('confirmed');
+    expect($booking->midtrans_id)->toBe('midtrans-tx-unique-id');
+
+    Mail::assertSent(BookingApproved::class);
+});
+
+test('pelanggan can bypass payment for testing', function () {
+    Mail::fake();
+
+    $user = User::factory()->create([
+        'role' => 'pelanggan',
+    ]);
+
+    $booking = Booking::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'pending',
+        'guest_email' => 'bypass@example.com',
+    ]);
+
+    $response = $this->actingAs($user)->post("/booking/{$booking->id}/bypass-payment");
+
+    $response->assertStatus(200);
+    $response->assertJson(['success' => true]);
+
+    $booking->refresh();
+    expect($booking->status)->toBe('confirmed');
+    expect($booking->midtrans_id)->toStartWith('BYPASS-');
+
+    Mail::assertSent(BookingApproved::class);
+});
+
+test('pelanggan can cancel/reject booking if payment fails or is closed', function () {
+    $user = User::factory()->create([
+        'role' => 'pelanggan',
+    ]);
+
+    $booking = Booking::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'pending',
+    ]);
+
+    $response = $this->actingAs($user)->post("/booking/{$booking->id}/cancel");
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+        'message' => 'Booking has been cancelled.',
+    ]);
+
+    $booking->refresh();
+    expect($booking->status)->toBe('rejected');
+});

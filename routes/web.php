@@ -316,6 +316,8 @@ Route::middleware('guest')->group(function () {
 });
 
 // Authenticated Routes
+Route::post('/midtrans/callback', [BookingController::class, 'midtransCallback'])->name('midtrans.callback');
+
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -327,6 +329,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/booking', [BookingController::class, 'index'])->name('booking');
     Route::get('/booking/check-availability', [BookingController::class, 'checkAvailability'])->name('booking.check-availability');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+    Route::post('/booking/{booking}/bypass-payment', [BookingController::class, 'bypassPayment'])->name('booking.bypass');
+    Route::post('/booking/{booking}/cancel', [BookingController::class, 'cancelBooking'])->name('booking.cancel');
 
     // User (Pelanggan) Routes
     Route::middleware('role:pelanggan')->group(function () {

@@ -38,3 +38,10 @@ Thumbs.db
 /.github/skills
 /AGENTS.md
 /boost.json
+
+# Local database dumps and temporary files
+/guesthouse.sql
+/bgh-statis
+/stack.txt
+/public/fonts-manifest.dev.json
+/public/fonts-manifest.json

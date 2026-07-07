@@ -43,6 +43,8 @@ class Booking extends Model
         'payment_proof',
         'status',
         'addons',
+        'snap_token',
+        'midtrans_id',
     ];
 
     /**

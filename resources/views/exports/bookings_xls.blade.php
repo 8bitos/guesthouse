@@ -123,10 +123,10 @@
             @endphp
             {{ count($otherAddons) > 0 ? implode(', ', $otherAddons) : '-' }}
           </td>
-          <td class="currency-cell text-right">{{ $booking->subtotal }}</td>
-          <td class="currency-cell text-right">{{ $booking->discount }}</td>
-          <td class="currency-cell text-right">{{ $booking->tax }}</td>
-          <td class="currency-cell text-right">{{ $booking->total_price }}</td>
+          <td class="currency-cell text-right">{{ number_format($booking->subtotal, 0, ',', '.') }}</td>
+          <td class="currency-cell text-right">{{ number_format($booking->discount, 0, ',', '.') }}</td>
+          <td class="currency-cell text-right">{{ number_format($booking->tax, 0, ',', '.') }}</td>
+          <td class="currency-cell text-right">{{ number_format($booking->total_price, 0, ',', '.') }}</td>
           <td>{{ ucfirst($booking->status) }}</td>
           <td class="datetime-cell">{{ $booking->created_at->format('Y-m-d H:i:s') }}</td>
         </tr>
@@ -143,10 +143,10 @@
           <td style="text-align: center; font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('nights') }}</td>
           <td style="text-align: center; font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('guests') }}</td>
           <td colspan="4" style="background-color: #e2e8f0; border-top: 2px solid #b5babf;"></td>
-          <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('subtotal') }}</td>
-          <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('discount') }}</td>
-          <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('tax') }}</td>
-          <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ $bookings->sum('total_price') }}</td>
+          <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ number_format($bookings->sum('subtotal'), 0, ',', '.') }}</td>
+          <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ number_format($bookings->sum('discount'), 0, ',', '.') }}</td>
+          <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ number_format($bookings->sum('tax'), 0, ',', '.') }}</td>
+          <td class="currency-cell text-right" style="font-weight: bold; background-color: #e2e8f0; border-top: 2px solid #b5babf;">{{ number_format($bookings->sum('total_price'), 0, ',', '.') }}</td>
           <td colspan="2" style="background-color: #e2e8f0; border-top: 2px solid #b5babf;"></td>
         </tr>
       </tfoot>
