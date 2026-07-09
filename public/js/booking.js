@@ -1245,8 +1245,9 @@ function simulateSuccessMockSnap() {
     if (!currentMockBookingId) return;
     
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var modal = document.getElementById('mock-snap-modal');
+    if (modal) modal.classList.add('hidden');
     
-    closeMockSnapModal();
     goToStep('processing');
     
     var loaderTitle = document.querySelector('#modal-step-processing h3');
