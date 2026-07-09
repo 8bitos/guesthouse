@@ -548,20 +548,7 @@
                                     <!-- Actions -->
                                     <td class="px-4 py-3 text-right">
                                         <div class="flex items-center justify-end gap-1.5">
-                                            @if ($booking['status'] === 'pending')
-                                                <form action="{{ route('admin.bookings.approve', $booking['id']) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" data-loading-text="icon-only" class="text-white rounded shadow transition hover:scale-105 cursor-pointer select-none" title="Approve" style="background-color: #10b981; border: 1px solid #059669; width: 26px; height: 26px; display: inline-flex; justify-content: center; align-items: center;" onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'">
-                                                        <span class="material-symbols-outlined text-sm font-bold leading-none" style="color: #ffffff;">check</span>
-                                                    </button>
-                                                </form>
-                                                <form action="{{ route('admin.bookings.reject', $booking['id']) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" data-loading-text="icon-only" class="text-white rounded shadow transition hover:scale-105 cursor-pointer select-none" title="Reject" style="background-color: #f43f5e; border: 1px solid #e11d48; width: 26px; height: 26px; display: inline-flex; justify-content: center; align-items: center;" onmouseover="this.style.backgroundColor='#e11d48'" onmouseout="this.style.backgroundColor='#f43f5e'">
-                                                        <span class="material-symbols-outlined text-sm font-bold leading-none" style="color: #ffffff;">close</span>
-                                                    </button>
-                                                </form>
-                                            @elseif ($booking['status'] === 'confirmed')
+                                            @if (in_array($booking['status'], ['pending', 'confirmed']))
                                                 <!-- Check In button -->
                                                 <form action="{{ route('admin.bookings.checkin', $booking['id']) }}" method="POST" class="inline">
                                                     @csrf
@@ -570,6 +557,16 @@
                                                         <span>Check In</span>
                                                     </button>
                                                 </form>
+                                                
+                                                @if ($booking['status'] === 'pending')
+                                                    <!-- Reject button (only if pending) -->
+                                                    <form action="{{ route('admin.bookings.reject', $booking['id']) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <button type="submit" data-loading-text="icon-only" class="text-white rounded shadow transition hover:scale-105 cursor-pointer select-none" title="Reject" style="background-color: #f43f5e; border: 1px solid #e11d48; width: 26px; height: 26px; display: inline-flex; justify-content: center; align-items: center;" onmouseover="this.style.backgroundColor='#e11d48'" onmouseout="this.style.backgroundColor='#f43f5e'">
+                                                            <span class="material-symbols-outlined text-sm font-bold leading-none" style="color: #ffffff;">close</span>
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             @elseif ($booking['status'] === 'checked_in')
                                                 <!-- Check Out button -->
                                                 <form action="{{ route('admin.bookings.checkout', $booking['id']) }}" method="POST" class="inline">

@@ -185,7 +185,7 @@
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
                                         <!-- Check-In / Check-Out quick controls -->
-                                        @if ($booking->status === 'confirmed')
+                                        @if (in_array($booking->status, ['pending', 'confirmed']))
                                             <form action="{{ route('admin.bookings.checkin', $booking->id) }}" method="POST" class="inline">
                                                 @csrf
                                                 <button type="submit" data-loading-text="Checking In..." class="text-white bg-emerald-650 hover:bg-emerald-755 border border-emerald-755 font-bold px-3 py-1.5 rounded transition text-[11px] inline-flex items-center gap-1 cursor-pointer select-none">
