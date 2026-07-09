@@ -849,7 +849,7 @@ function goToPaymentStep() {
     }
 
     // Force default payment method
-    selectPaymentMethod('Transfer Bank');
+    selectPaymentMethod('Midtrans');
 
     goToStep('payment');
 }

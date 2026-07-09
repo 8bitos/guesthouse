@@ -471,100 +471,18 @@
                     </div>
                 </div>
 
-                <!-- STEP 2: Choose Payment Method & Pay -->
+                <!-- STEP 2: Online Payment -->
                 <div id="modal-step-payment" class="p-6 sm:p-8 space-y-6 hidden animate-fade-in-up">
                     <div class="text-center space-y-2">
-                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-50 text-amber-700 mb-3">
-                            <span class="material-symbols-outlined text-3xl font-bold">payment</span>
+                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-50 text-blue-700 mb-3">
+                            <span class="material-symbols-outlined text-3xl font-bold">credit_card</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900">Select Payment Method</h3>
-                        <p class="text-xs text-gray-500">Choose how you want to settle your reservation payment.</p>
-                    </div>
-
-                    <!-- Choose Payment Method Tabs -->
-                    <div class="space-y-2">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <!-- Option Transfer Bank -->
-                            <div onclick="selectPaymentMethod('Transfer Bank')" id="payment-option-bank" class="border-2 border-amber-600 bg-amber-50/10 rounded-xl p-3.5 cursor-pointer transition flex items-start gap-3 select-none">
-                                <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-                                    <span class="material-symbols-outlined text-lg">account_balance</span>
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h4 class="font-bold text-gray-900 text-xs">Transfer Bank</h4>
-                                    <p class="text-[9px] text-gray-500 leading-tight">Manual upload, verified by admin.</p>
-                                </div>
-                            </div>
-                            
-                            <!-- Option Midtrans -->
-                            <div onclick="selectPaymentMethod('Midtrans')" id="payment-option-midtrans" class="border-2 border-gray-200 bg-white rounded-xl p-3.5 cursor-pointer transition flex items-start gap-3 select-none">
-                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                                    <span class="material-symbols-outlined text-lg">credit_card</span>
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h4 class="font-bold text-gray-900 text-xs">Midtrans Sandbox</h4>
-                                    <p class="text-[9px] text-gray-500 leading-tight">Instant checkouts (QRIS, VA, GoPay).</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Block 1: Bank Transfer Details Wrapper -->
-                    <div id="bank-transfer-details" class="space-y-6">
-                        <!-- Bank Account Info -->
-                        <div class="bg-amber-50/50 border border-amber-100 rounded-xl p-4 space-y-2.5 text-xs">
-                            <div class="flex justify-between border-b border-amber-200/20 pb-2">
-                                <span class="text-gray-500">Bank Name:</span>
-                                <strong class="text-gray-900 font-bold uppercase">BCA (Bank Central Asia)</strong>
-                            </div>
-                            <div class="flex justify-between border-b border-amber-200/20 pb-2">
-                                <span class="text-gray-500">Account Number:</span>
-                                <div class="flex items-center gap-1.5">
-                                    <strong class="text-gray-900 font-bold font-mono">123-456-7890</strong>
-                                    <button type="button" onclick="navigator.clipboard.writeText('123-456-7890'); alert('Account number copied!');" class="text-[10px] text-amber-700 hover:underline font-bold focus:outline-none cursor-pointer">Copy</button>
-                                </div>
-                            </div>
-                            <div class="flex justify-between border-b border-amber-200/20 pb-2">
-                                <span class="text-gray-500">Account Owner:</span>
-                                <strong class="text-gray-900 font-bold uppercase">Bagus Guest House</strong>
-                            </div>
-                            <div class="flex justify-between pt-1 font-bold text-gray-900">
-                                <span>Transfer Amount:</span>
-                                <strong class="text-sm text-amber-700" id="transfer-amount-display">RP 0</strong>
-                            </div>
-                        </div>
-
-                        <!-- Note for international guests -->
-                        <div class="bg-blue-50/70 border border-blue-150 rounded-xl p-3.5 text-[11px] text-blue-800 leading-relaxed">
-                            <div class="flex items-center gap-1.5 font-bold text-blue-950 mb-1">
-                                <span class="material-symbols-outlined text-sm">info</span>
-                                <span>Notice for International Guests</span>
-                            </div>
-                            <p class="font-medium text-blue-900">
-                                For international guests or guests who are unable to transfer payment to the provided bank account, payment may be completed upon arrival at Bagus Guest House. To validate the reservation, guests are required to upload proof of arrival, such as a flight ticket or travel itinerary. Reservations will be reviewed and confirmed by the administrator after verification.
-                            </p>
-                        </div>
-
-                        <!-- File Upload -->
-                        <div class="space-y-2">
-                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Upload Transfer Receipt *</label>
-                            <div class="border-2 border-dashed border-gray-200 hover:border-amber-700/50 rounded-xl p-4 transition text-center relative bg-gray-50/30">
-                                <input type="file" id="payment-proof-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileSelect(event)">
-                                <div class="space-y-1" id="upload-placeholder">
-                                    <span class="material-symbols-outlined text-3xl text-gray-400">upload_file</span>
-                                    <p class="text-[11px] font-semibold text-gray-700">Click or drag receipt image here</p>
-                                    <p class="text-[9px] text-gray-400">PNG, JPG, or JPEG up to 2MB</p>
-                                </div>
-                                <div class="hidden space-y-1" id="upload-success-preview">
-                                    <span class="material-symbols-outlined text-3xl text-emerald-600">check_circle</span>
-                                    <p class="text-[11px] font-bold text-emerald-800" id="upload-filename">receipt.jpg</p>
-                                    <p class="text-[9px] text-gray-400">Selected. Click to replace.</p>
-                                </div>
-                            </div>
-                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Online Payment</h3>
+                        <p class="text-xs text-gray-500">Pay securely using QRIS, Virtual Account, or GoPay via Midtrans.</p>
                     </div>
 
                     <!-- Block 2: Midtrans Details Wrapper -->
-                    <div id="midtrans-payment-details" class="space-y-4 hidden animate-fade-in-up">
+                    <div id="midtrans-payment-details" class="space-y-4 animate-fade-in-up">
                         <div class="bg-blue-50/70 border border-blue-150 rounded-xl p-3.5 text-xs text-blue-800 space-y-2 leading-relaxed">
                             <div class="flex items-center gap-1.5 font-bold text-blue-950">
                                 <span class="material-symbols-outlined text-sm">payment</span>
@@ -578,9 +496,9 @@
 
                     <!-- Actions -->
                     <div class="flex flex-col gap-2">
-                        <button type="button" id="btn-pay-now" onclick="submitBooking()" disabled
-                                class="w-full bg-gray-300 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition flex items-center justify-center gap-2 cursor-not-allowed select-none">
-                            <span>Submit Payment Proof</span>
+                        <button type="button" id="btn-pay-now" onclick="submitBooking()"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-blue-750/20 transition flex items-center justify-center gap-2 cursor-pointer select-none">
+                            <span>Pay with Midtrans Sandbox</span>
                         </button>
                         <button type="button" onclick="goToStep('details')"
                                 class="w-full bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer select-none">
