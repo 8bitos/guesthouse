@@ -257,7 +257,7 @@ HTML;
 });
 
 Route::get('/', function () {
-    $rooms = Room::where('status', 'tersedia')->take(6)->get();
+    $rooms = Room::where('status', '!=', 'perbaikan')->get();
 
     // Fetch CMS settings
     $aboutTitle = Setting::getValue('about_title', 'About Us');
@@ -289,7 +289,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/rooms', function () {
-    $rooms = Room::all();
+    $rooms = Room::where('status', '!=', 'perbaikan')->get();
 
     return view('pages.rooms', compact('rooms'));
 })->name('rooms');

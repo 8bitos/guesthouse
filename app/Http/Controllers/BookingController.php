@@ -21,7 +21,7 @@ class BookingController extends Controller
      */
     public function index(Request $request): View
     {
-        $rooms = Room::where('status', 'tersedia')->get();
+        $rooms = Room::where('status', '!=', 'perbaikan')->get();
         $selectedRoomId = $request->query('room_id');
 
         return view('pages.booking', compact('rooms', 'selectedRoomId'));
