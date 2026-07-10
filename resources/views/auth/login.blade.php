@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sign In - Bagus Guest House</title>
     @fonts
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
@@ -122,11 +123,9 @@
                         <input id="password" type="password" name="password" required autocomplete="current-password"
                                class="w-full bg-transparent border-b-2 border-gray-200 focus:border-amber-700 focus:outline-none py-2 text-gray-800 transition placeholder-gray-300 pr-8"
                                placeholder="Enter your password">
-                        <span class="absolute right-0 bottom-3 text-amber-700 pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </span>
+                        <button type="button" onclick="togglePasswordVisibility('password', this)" class="absolute right-0 bottom-2 text-gray-400 hover:text-amber-700 transition focus:outline-none cursor-pointer">
+                            <span class="material-symbols-outlined text-lg leading-none">visibility</span>
+                        </button>
                     </div>
                 </div>
 
@@ -165,6 +164,18 @@
                 btn.classList.add('opacity-80', 'cursor-not-allowed');
             }
             return true;
+        }
+
+        function togglePasswordVisibility(inputId, buttonEl) {
+            const input = document.getElementById(inputId);
+            const iconEl = buttonEl.querySelector('.material-symbols-outlined');
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconEl.textContent = 'visibility_off';
+            } else {
+                input.type = 'password';
+                iconEl.textContent = 'visibility';
+            }
         }
     </script>
 </body>
