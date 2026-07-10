@@ -153,7 +153,7 @@ class DashboardController extends Controller
             'total_users' => User::count(),
             'total_rooms' => Room::count(),
             'active_bookings' => Booking::where('status', 'checked_in')->count(),
-            'revenue' => Booking::whereIn('status', ['checked_in', 'completed'])->sum('total_price'),
+            'revenue' => Booking::whereIn('status', ['confirmed', 'checked_in', 'completed'])->sum('total_price'),
         ];
 
         // Fetch recent bookings for admin display from database
@@ -181,7 +181,7 @@ class DashboardController extends Controller
 
         // Calculate booking trends (most popular rooms)
         $favoriteRooms = Room::withCount(['bookings' => function ($query) {
-            $query->whereIn('status', ['checked_in', 'completed']);
+            $query->whereIn('status', ['confirmed', 'checked_in', 'completed']);
         }])->orderBy('bookings_count', 'desc')->take(5)->get();
 
         // Calculate occupancy & revenue trends based on filter
@@ -195,7 +195,7 @@ class DashboardController extends Controller
             $trendsColumnHeader = 'Hour';
             $todayStr = today()->format('Y-m-d');
 
-            $bookings = Booking::whereIn('status', ['checked_in', 'completed'])
+            $bookings = Booking::whereIn('status', ['confirmed', 'checked_in', 'completed'])
                 ->whereDate('created_at', $todayStr)
                 ->get();
 
@@ -216,7 +216,7 @@ class DashboardController extends Controller
             $trendsColumnHeader = 'Date';
             $startDate = today()->subDays(6)->format('Y-m-d');
 
-            $bookings = Booking::whereIn('status', ['checked_in', 'completed'])
+            $bookings = Booking::whereIn('status', ['confirmed', 'checked_in', 'completed'])
                 ->where('check_in', '>=', $startDate)
                 ->get();
 
@@ -238,7 +238,7 @@ class DashboardController extends Controller
             $trendsColumnHeader = 'Date';
             $startDate = today()->subDays(29)->format('Y-m-d');
 
-            $bookings = Booking::whereIn('status', ['checked_in', 'completed'])
+            $bookings = Booking::whereIn('status', ['confirmed', 'checked_in', 'completed'])
                 ->where('check_in', '>=', $startDate)
                 ->get();
 
@@ -260,7 +260,7 @@ class DashboardController extends Controller
             $trendsColumnHeader = 'Month';
             $startDate = today()->subMonths(11)->startOfMonth()->format('Y-m-d');
 
-            $bookings = Booking::whereIn('status', ['checked_in', 'completed'])
+            $bookings = Booking::whereIn('status', ['confirmed', 'checked_in', 'completed'])
                 ->where('check_in', '>=', $startDate)
                 ->get();
 
@@ -282,7 +282,7 @@ class DashboardController extends Controller
             $trendsColumnHeader = 'Month';
             $startDate = today()->subMonths(5)->startOfMonth()->format('Y-m-d');
 
-            $bookings = Booking::whereIn('status', ['checked_in', 'completed'])
+            $bookings = Booking::whereIn('status', ['confirmed', 'checked_in', 'completed'])
                 ->where('check_in', '>=', $startDate)
                 ->get();
 
@@ -302,7 +302,7 @@ class DashboardController extends Controller
         }
 
         // Calculate guest origin trends (top 5 origins, database-agnostic)
-        $guestOrigins = Booking::whereIn('status', ['checked_in', 'completed'])
+        $guestOrigins = Booking::whereIn('status', ['confirmed', 'checked_in', 'completed'])
             ->pluck('guest_country')
             ->map(function ($country) {
                 return trim($country);
