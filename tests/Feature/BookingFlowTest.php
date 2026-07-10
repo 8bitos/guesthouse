@@ -465,3 +465,28 @@ test('pelanggan can cancel/reject booking if payment fails or is closed', functi
     $booking->refresh();
     expect($booking->status)->toBe('rejected');
 });
+
+test('pelanggan can confirm booking payment status on success callback', function () {
+    $user = User::factory()->create([
+        'role' => 'pelanggan',
+    ]);
+
+    $booking = Booking::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'pending',
+    ]);
+
+    $response = $this->actingAs($user)->postJson("/booking/{$booking->id}/confirm-payment", [
+        'transaction_id' => 'MOCK-TRX-12345',
+    ]);
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+        'message' => 'Payment confirmed successfully.',
+    ]);
+
+    $booking->refresh();
+    expect($booking->status)->toBe('confirmed');
+    expect($booking->midtrans_id)->toBe('MOCK-TRX-12345');
+});

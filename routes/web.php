@@ -331,6 +331,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::post('/booking/{booking}/bypass-payment', [BookingController::class, 'bypassPayment'])->name('booking.bypass');
     Route::post('/booking/{booking}/cancel', [BookingController::class, 'cancelBooking'])->name('booking.cancel');
+    Route::post('/booking/{booking}/confirm-payment', [BookingController::class, 'confirmPayment'])->name('booking.confirm-payment');
 
     // User (Pelanggan) Routes
     Route::middleware('role:pelanggan')->group(function () {

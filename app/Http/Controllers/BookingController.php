@@ -473,4 +473,35 @@ class BookingController extends Controller
             'message' => 'Booking has been cancelled.',
         ]);
     }
+
+    /**
+     * Confirm booking payment status from client-side success callback.
+     */
+    public function confirmPayment(Booking $booking, Request $request): JsonResponse
+    {
+        if ($booking->user_id !== Auth::id() && Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $bookings = Booking::where('invoice_no', $booking->invoice_no)->get();
+        foreach ($bookings as $b) {
+            $b->update([
+                'status' => 'confirmed',
+                'midtrans_id' => $request->input('transaction_id') ?? $b->midtrans_id,
+            ]);
+        }
+
+        $primaryBooking = $bookings->first();
+        try {
+            Mail::to($primaryBooking->guest_email)
+                ->send(new BookingApproved($primaryBooking));
+        } catch (\Exception $e) {
+            Log::error('Error sending email on confirmPayment: '.$e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment confirmed successfully.',
+        ]);
+    }
 }

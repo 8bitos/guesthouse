@@ -1019,19 +1019,17 @@ function submitBooking() {
             } else {
                 window.snap.pay(data.snap_token, {
                     onSuccess: function(result) {
-                        updateReceiptToConfirmed(booking);
-                        goToStep('receipt');
+                        confirmPaymentOnServer(booking.id, result.transaction_id || result.order_id);
                     },
                     onPending: function(result) {
                         updateReceiptToPending(booking);
                         goToStep('receipt');
                     },
                     onError: function(result) {
-                        alert('Payment failed: ' + result.status_message);
-                        cancelBookingOnServer(booking.id);
+                        closeModal();
                     },
                     onClose: function() {
-                        cancelBookingOnServer(booking.id);
+                        closeModal();
                     }
                 });
             }
@@ -1380,6 +1378,61 @@ function cancelBookingOnServer(bookingId) {
     .catch(function(err) {
         console.error('Error cancelling booking:', err);
         closeModal();
+    });
+}
+
+/**
+ * Confirm successful payment on server from client-side callback.
+ */
+function confirmPaymentOnServer(bookingId, transactionId) {
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    goToStep('processing');
+    var loaderTitle = document.querySelector('#modal-step-processing h3');
+    if (loaderTitle) {
+        loaderTitle.textContent = 'Verifying payment...';
+    }
+    
+    fetch('/booking/' + bookingId + '/confirm-payment', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            transaction_id: transactionId
+        })
+    })
+    .then(function(res) {
+        return res.json().then(function(data) {
+            if (!res.ok) throw new Error(data.error || 'Payment verification failed');
+            return data;
+        });
+    })
+    .then(function(data) {
+        // Update UI receipt
+        var watermark = document.getElementById('receipt-watermark');
+        if (watermark) {
+            watermark.textContent = 'PAID & CONFIRMED';
+            watermark.style.backgroundColor = '#10b981';
+        }
+        var statusBadge = document.getElementById('receipt-status-badge');
+        if (statusBadge) {
+            statusBadge.style.backgroundColor = '#d1fae5';
+            statusBadge.style.color = '#065f46';
+            statusBadge.style.borderColor = '#a7f3d0';
+            statusBadge.innerHTML = '✅ Paid & Confirmed';
+        }
+        
+        var bypassBtn = document.getElementById('btn-bypass-payment');
+        if (bypassBtn) bypassBtn.classList.add('hidden');
+        
+        goToStep('receipt');
+    })
+    .catch(function(err) {
+        alert('Verification Error: ' + err.message);
+        goToStep('receipt');
     });
 }
 
