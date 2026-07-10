@@ -130,15 +130,6 @@
                     </div>
                 </div>
 
-                <!-- Remember Me & Terms (styled checklist) -->
-                <div class="flex items-center">
-                    <input id="remember" type="checkbox" name="remember" 
-                           class="h-4 w-4 rounded border-gray-300 text-amber-700 focus:ring-amber-700 focus:outline-none cursor-pointer">
-                    <label for="remember" class="ml-2.5 text-sm text-gray-500 select-none cursor-pointer">
-                        Remember my session on this computer
-                    </label>
-                </div>
-
                 <!-- Buttons Layout -->
                 <div class="flex gap-4 items-center pt-2">
                     <button type="submit" 
