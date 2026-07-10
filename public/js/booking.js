@@ -998,12 +998,22 @@ function submitBooking() {
         body: formData
     })
     .then(function(res) {
-        return res.json().then(function(data) {
-            if (!res.ok) {
-                throw new Error(data.message || data.error || 'Something went wrong during submission.');
-            }
-            return data;
-        });
+        var contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            return res.json().then(function(data) {
+                if (!res.ok) {
+                    throw new Error(data.message || data.error || 'Something went wrong during submission.');
+                }
+                return data;
+            });
+        } else {
+            return res.text().then(function(text) {
+                if (res.status === 419) {
+                    throw new Error('Your session has expired. Please refresh the page and try again.');
+                }
+                throw new Error('Server returned an unexpected response (Status ' + res.status + '). Please ensure database migrations are run: "php artisan migrate".');
+            });
+        }
     })
     .then(function(data) {
         var booking = data.booking;
